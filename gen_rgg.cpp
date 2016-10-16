@@ -29,6 +29,7 @@
 
 using namespace std;
 
+// see http://stackoverflow.com/a/12827233/2639561
 string WARN = "\x1b[33m";
 string ERRO = "\x1b[31m";
 string INFO = "\x1b[34m";
@@ -85,6 +86,7 @@ unordered_map<luint, LList<point*> > build_adjacency(const Mat& rgg, double avg_
   // Sweep approach
   auto vectorized_points = rgg.T();
   auto window_start = points.begin();
+  luint num_edges = 0;
   for(auto i = points.begin() + 1; i != points.end(); ++i) {
     adjacency_list[i->id];
     // first, should the window be moved?
@@ -94,11 +96,13 @@ unordered_map<luint, LList<point*> > build_adjacency(const Mat& rgg, double avg_
       // calculate the distince between the points
       Vec diff = vectorized_points.AccessColumn(i->id) - vectorized_points.AccessColumn(j->id);
       if (diff.TwoNorm() <= radius) {
+        num_edges++;
         adjacency_list[i->id].insert(&*j);
         adjacency_list[j->id].insert(&*i);
       }
     }
   }
+  if (DEBUG) cout << "Number of Edges = " << num_edges << endl;
   return adjacency_list;
 }
 
