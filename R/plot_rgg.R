@@ -1,7 +1,8 @@
 library(readr)
 
 # Sen input file via commandline
-argv <- commandArgs(FALSE)
+argv <- commandArgs(TRUE)
+print(argv)
 
 if (length(argv) < 1) {
   warning("At least one file must be listed when invoking this script")
