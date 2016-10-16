@@ -175,7 +175,23 @@ int main(int argc, const char *argv[])
   file_base_name_s << '_' << num_nodes << '_' << avg_degree;
   string output_file_base_name = file_base_name_s.str();
   string rgg_output_file = output_file_base_name + ".csv";
+  string adjacency_list_output_file = output_file_base_name + "_adj_list.txt";
+  string degree_dist_output_file = output_file_base_name + "_degree_dist.csv";
   rgg.Write(rgg_output_file.c_str(), ',');
+
+  fstream fout;
+  fout.open(adjacency_list_output_file, ios_base::out | ios_base::trunc);
+  for(auto i : adjacency_list) {
+    fout << i.first << ":";
+    for(auto j : i.second)
+      fout << j->id << ' ';
+    fout << endl;
+  }
+  fout.close();
+
+  fout.open(degree_dist_output_file, ios_base::out | ios_base::trunc);
+  for(luint i = 0; i <= max_degree; ++i)
+    fout << i << ',' << dist_degree[i] << endl;
 
   return 0;
 }
