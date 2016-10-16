@@ -1,0 +1,24 @@
+# OS X
+.DS_Store
+
+# iPython Notebook
+.ipynb_checkpoints/
+
+# excutables
+*.out
+*.exe
+
+# data files
+*.csv
+*.png
+
+# object files
+*.o
+
+# swap files
+*~
+*.swp
+
+.Rproj.user
+.Rhistory
+.RData
