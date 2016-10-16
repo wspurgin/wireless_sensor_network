@@ -152,13 +152,24 @@ int main(int argc, const char *argv[])
 
   auto adjacency_list = build_adjacency(rgg, avg_degree, radius);
   double actual_avg_degree = 0.0;
-  for(auto i : adjacency_list)
-    actual_avg_degree += i.second.length();
+  luint min_degree = -1;
+  luint max_degree = 0;
+  vector<luint> dist_degree(num_nodes);
+  for(auto i : adjacency_list) {
+    auto degree = i.second.length();
+    actual_avg_degree += degree;
+    dist_degree[degree]++;
+    if (degree > max_degree) max_degree = degree;
+    if (degree < min_degree) min_degree = degree;
+  }
   actual_avg_degree /= num_nodes;
 
-  if (DEBUG)
+  if (DEBUG) {
     cout << "Estimated average degree = " << avg_degree << endl <<
       "Actual average degree = " << actual_avg_degree << endl;
+    cout << "Max Degree = " << max_degree << endl << "Min Degree = " <<
+      min_degree << endl;
+  }
 
 
   file_base_name_s << '_' << num_nodes << '_' << avg_degree;
