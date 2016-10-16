@@ -252,7 +252,7 @@ void Mat::SetData(double* data, luint rows, luint columns) {
 * Exceptions:
 *   Throws runtime_error
 */
-double& Mat::operator()(luint i, luint j) {
+double& Mat::operator()(luint i, luint j) const {
     if (!data) {
         throw std::runtime_error("Trying to get data from empty matrix\n");
     }
@@ -584,7 +584,7 @@ Mat operator*(const double a, const Mat &B) {
 }
 
 // C = A^T
-Mat Mat::T() {
+Mat Mat::T() const {
   // create new Mat for output, and do operation
   Mat C(columns,rows);
   for (luint j=0; j<columns; ++j)

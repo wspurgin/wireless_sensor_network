@@ -61,7 +61,7 @@ Vec& Vec::_copy(const Vec& rhs) {
 
 
 // clone routine (clone myself to create a new Vec)
-Vec* Vec::Clone() const { 
+Vec* Vec::Clone() const {
   return new Vec(length);
 };
 
@@ -74,7 +74,7 @@ int Vec::Write() const {
     return 1;
   }
 
-  // print data to screen 
+  // print data to screen
   for (long int i=0; i<length; i++)
     printf("  %g\n",data[i]);
   printf("\n");
@@ -120,8 +120,8 @@ int Vec::Write(const char *outfile) const {
 
 
 // returns my length
-long int Vec::Length() const { 
-  return length; 
+long int Vec::Length() const {
+  return length;
 };
 
 
@@ -143,8 +143,8 @@ int Vec::SetData(double *DataArray, long int length) {
 
 
 // get my data array
-double* Vec::GetData() const { 
-  return data; 
+double* Vec::GetData() const {
+  return data;
 };
 
 Vec& Vec::operator=(const Vec& rhs) {
@@ -157,7 +157,19 @@ Vec& Vec::operator=(const Vec& rhs) {
   return *this;
 }
 
-// access my data -- access value by location in array, 
+Vec Vec::operator-(const Vec& y) const {
+  Vec diff(*this);
+  diff -= y;
+  return diff;
+}
+
+Vec Vec::operator+(const Vec& y) const {
+  Vec sum(*this);
+  sum += y;
+  return sum;
+}
+
+// access my data -- access value by location in array,
 // gets reference to value so that it can be changed (1-based version)
 double& Vec::operator()(long int i) {
   // check that data is not nullptr
@@ -177,7 +189,7 @@ double& Vec::operator()(long int i) {
 
 
 
-// access my data -- access value by location in array, 
+// access my data -- access value by location in array,
 // gets reference to value so that it can be changed (0-based version)
 double& Vec::operator[](long int i) {
   // check that data is not nullptr
@@ -206,7 +218,7 @@ int Vec::LinearSum(double a, double b, const Vec &y) {
     fprintf(stderr,"Vec::LinearSum error, vector sizes do not match\n");
     return 1;
   }
-  
+
   // check that data is not nullptr
   if (data == nullptr || y.data == nullptr) {
     fprintf(stderr, "Vec::LinearSum error: empty data array\n");
@@ -214,9 +226,9 @@ int Vec::LinearSum(double a, double b, const Vec &y) {
   }
 
   // perform operation
-  for (long int i=0; i<length; i++)  
+  for (long int i=0; i<length; i++)
     data[i] = a*data[i] + b*y.data[i];
-  
+
   // return success
   return 0;
 }
@@ -229,7 +241,7 @@ int Vec::LinearCombination(double a, const Vec &y, double b, const Vec &z) {
     fprintf(stderr,"Vec::LinearSum error, vector sizes do not match\n");
     return 1;
   }
-  
+
   // check that data is not nullptr
   if (data == nullptr || y.data == nullptr || z.data == nullptr) {
     fprintf(stderr, "Vec::LinearSum error: empty data array\n");
@@ -237,17 +249,17 @@ int Vec::LinearCombination(double a, const Vec &y, double b, const Vec &z) {
   }
 
   // perform operation
-  for (long int i=0; i<length; i++)  
+  for (long int i=0; i<length; i++)
     data[i] = a*y.data[i] + b*z.data[i];
-  
+
   // return success
   return 0;
 }
 
 
 // x = x+y  (adds vector y to my data)
-int Vec::Add(const Vec& y) { 
-  return LinearSum(1.0, 1.0, y); 
+int Vec::Add(const Vec& y) {
+  return LinearSum(1.0, 1.0, y);
 };
 
 
@@ -261,21 +273,21 @@ int Vec::Add(double a) {
 
   // perform operation
   for (long int i=0; i<length; i++)  data[i] += a;
-  
+
   // return success
   return 0;
 }
 
 
 // x = x-y  (subtracts vector y from my data)
-int Vec::Sub(const Vec& y) { 
-  return LinearSum(1.0, -1.0, y); 
+int Vec::Sub(const Vec& y) {
+  return LinearSum(1.0, -1.0, y);
 };
 
 
 // x = x-a  (subtracts scalar a from my data)
-int Vec::Sub(double a) { 
-  return Add(-a); 
+int Vec::Sub(double a) {
+  return Add(-a);
 };
 
 
@@ -286,7 +298,7 @@ int Vec::Mul(const Vec &y) {
     fprintf(stderr,"Vec::Mul error, vector sizes do not match\n");
     return 1;
   }
-  
+
   // check that data is not nullptr
   if (data == nullptr || y.data == nullptr) {
     fprintf(stderr, "Vec::Mul error: empty data array\n");
@@ -295,7 +307,7 @@ int Vec::Mul(const Vec &y) {
 
   // perform operation
   for (long int i=0; i<length; i++)  data[i] *= y.data[i];
-  
+
   // return success
   return 0;
 }
@@ -311,7 +323,7 @@ int Vec::Scale(double a) {
 
   // perform operation
   for (long int i=0; i<length; i++)  data[i] *= a;
-  
+
   // return success
   return 0;
 }
@@ -328,7 +340,7 @@ int Vec::Div(const Vec &y) {
     fprintf(stderr,"Vec::Div error, vector sizes do not match\n");
     return 1;
   }
-  
+
   // check that data is not nullptr
   if (data == nullptr || y.data == nullptr) {
     fprintf(stderr, "Vec::Div error: empty data array\n");
@@ -349,7 +361,7 @@ int Vec::Div(const Vec &y) {
 
   // perform operation
   for (i=0; i<length; i++)  data[i] /= y.data[i];
-  
+
   // return success
   return 0;
 }
@@ -362,7 +374,7 @@ int Vec::Copy(const Vec &y) {
     fprintf(stderr,"Vec::Copy error, vector sizes do not match\n");
     return 1;
   }
-  
+
   // check that data is not nullptr
   if (data == nullptr || y.data == nullptr) {
     fprintf(stderr, "Vec::Copy error: empty data array\n");
@@ -371,7 +383,7 @@ int Vec::Copy(const Vec &y) {
 
   // perform operation
   for (long int i=0; i<length; i++)  data[i] = y.data[i];
-  
+
   // return success
   return 0;
 }
@@ -387,7 +399,7 @@ int Vec::Const(double a) {
 
   // perform operation
   for (long int i=0; i<length; i++)  data[i] = a;
-  
+
   // return success
   return 0;
 }
@@ -403,20 +415,20 @@ int Vec::Power(double p) {
 
   // perform operation
   for (long int i=0; i<length; i++)  data[i] = pow(data[i], p);
-  
+
   // return success
   return 0;
 }
 
 
-//   x == y  (checks whether vectors are equal) 
+//   x == y  (checks whether vectors are equal)
 bool Vec::Equals(const Vec &y) {
   if (y.length != length)
     return false;
-  if (data == nullptr || y.data == nullptr) 
+  if (data == nullptr || y.data == nullptr)
     return false;
-  for (long int i=0; i<length; i++)  
-    if (data[i] != y.data[i]) 
+  for (long int i=0; i<length; i++)
+    if (data[i] != y.data[i])
       return false;
   return true;
 }

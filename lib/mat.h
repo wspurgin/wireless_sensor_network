@@ -101,7 +101,7 @@ public:
     void SetData(double* data, luint rows, luint cols);
 
     // Return reference to data value at i,j
-    double& operator()(luint i, luint j);
+    double& operator()(luint i, luint j) const;
 
     double& operator[](luint i) const { return this->data[i]; }
 
@@ -141,7 +141,7 @@ public:
     Mat operator*(const Mat &B) { return this->Multiply(B); };                     // C = A*B
     Mat operator*(const double a);                   // C = B*a
     Vec operator*(const Vec &b) { return this->Multiply(b); };
-    Mat T();                                          // C = A^T
+    Mat T() const;                                          // C = A^T
     Vec& AccessColumn(luint j);                        // C = A(:,j)
 
     // Scalar output operators on matrices

@@ -56,7 +56,7 @@ class Vec {
   int SetData(double* DataArray, long int length);
   double* GetData() const;
 
-  // access my data -- access value by location in array, 
+  // access my data -- access value by location in array,
   // returns handle to value so that it can be changed as well
   double& operator()(long int i);  // 1-based
   double& operator[](long int i);  // 0-based
@@ -78,7 +78,7 @@ class Vec {
   int Const(double a);                                            // x = a
   int Power(double p);                                            // x = x.^p
   bool Equals(const Vec& y);                                      // x == y
-  
+
   // in place modification operations
   int Abs();
   int Normalize();
@@ -116,6 +116,9 @@ class Vec {
   Vec& operator=(const Vec& y);
   int operator=(double a) { return Const(a); };        // x = a
   bool operator==(const Vec& y) {return Equals(y); };  // x == y
+
+  Vec operator-(const Vec& y) const;
+  Vec operator+(const Vec& y) const;
 
   //declaring friend Helper functions //
   friend Vec Linspace(double a, double b, long int n);

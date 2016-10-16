@@ -19,9 +19,11 @@
 #include <fstream>
 #include <cstdlib>
 #include <algorithm>
+#include <unordered_map>
+#include <vector>
 
 #include "lib/mat.h"
-#include "lib/vec.h"
+#include "lib/LList.h"
 
 #define DEBUG true
 
@@ -32,6 +34,14 @@ string ERRO = "\x1b[31m";
 string INFO = "\x1b[34m";
 string SUCC = "\x1b[32m";
 string ENDC = "\x1b[0m";
+
+struct point {
+  luint id;
+  double x;
+  double y;
+
+  point(luint i, double j, double k):id(i),x(j),y(k){}
+};
 
 const string error(const string message) {
   stringstream ss;
@@ -49,16 +59,47 @@ const char* help() {
   return "Usage: ./gen_rgg <num_nodes> <average_degree> [plane|disk]";
 }
 
-Mat gen_random_plane(unsigned int num_nodes) {
+Mat gen_random_plane(luint num_nodes) {
   Mat net = Mat(num_nodes, 2);
   net.Random();
   return net;
 }
 
-Mat gen_random_disk(unsigned int num_nodes) {
+Mat gen_random_disk(luint num_nodes) {
   Mat net = Mat(num_nodes, 2);
   net.RandomDisk();
   return net;
+}
+
+unordered_map<luint, LList<point*> > build_adjacency(const Mat& rgg, double avg_degree, double radius) {
+  unordered_map<luint, LList<point*> > adjacency_list;
+
+  vector<point> points;
+  for(luint i = 0; i < rgg.Rows(); ++i)
+    points.push_back(point(i, rgg(i, 0), rgg(i, 1)));
+
+  sort(points.begin(), points.end(), [](point a, point b) {
+        return a.x < b.x;
+      });
+
+  // Sweep approach
+  auto vectorized_points = rgg.T();
+  auto window_start = points.begin();
+  for(auto i = points.begin() + 1; i != points.end(); ++i) {
+    adjacency_list[i->id];
+    // first, should the window be moved?
+    while (abs(i->x - window_start->x) > radius && i - 1 > window_start)
+      ++window_start;
+    for(auto j = window_start; j != i; ++j) {
+      // calculate the distince between the points
+      Vec diff = vectorized_points.AccessColumn(i->id) - vectorized_points.AccessColumn(j->id);
+      if (diff.TwoNorm() <= radius) {
+        adjacency_list[i->id].insert(&*j);
+        adjacency_list[j->id].insert(&*i);
+      }
+    }
+  }
+  return adjacency_list;
 }
 
 int main(int argc, const char *argv[])
@@ -67,7 +108,7 @@ int main(int argc, const char *argv[])
     cerr << error("Error: Too few inputs to generation.") << endl <<
       '\t' << help() << endl;
 
-  unsigned int num_nodes = atoi(argv[1]);
+  luint num_nodes = atoi(argv[1]);
   double avg_degree      = atof(argv[2]);
   bool as_plane             = true;
 
@@ -87,26 +128,39 @@ int main(int argc, const char *argv[])
 
   // Initialization is complete
   Mat rgg;
-  double radius = sqrt(avg_degree / num_nodes / M_PI);
+  double radius;
+
+  stringstream file_base_name_s;
+  if (as_plane) {
+    rgg = gen_random_plane(num_nodes);
+    file_base_name_s << "plane";
+    radius = sqrt(avg_degree / num_nodes / M_PI);
+  }
+  else {
+    rgg = gen_random_disk(num_nodes);
+    file_base_name_s << "disk";
+    radius = sqrt(avg_degree / num_nodes);
+  }
 
   if (DEBUG)
     cout  <<  "num_nodes=" << num_nodes << ";avg_degree=" << avg_degree <<
       ";as_plane=" << as_plane << ";radius=" << radius <<  endl;
 
-  stringstream file_name_s;
-  if (as_plane) {
-    rgg = gen_random_plane(num_nodes);
-    file_name_s << "plane";
-  }
-  else {
-    rgg = gen_random_disk(num_nodes);
-    file_name_s << "disk";
-  }
+  auto adjacency_list = build_adjacency(rgg, avg_degree, radius);
+  double actual_avg_degree = 0.0;
+  for(auto i : adjacency_list)
+    actual_avg_degree += i.second.length();
+  actual_avg_degree /= num_nodes;
 
-  file_name_s << '_' << num_nodes << '_' << avg_degree << ".csv";
-  // TODO generate adjacency list by estimating radius of encounter / avg degree
-  string output_file = file_name_s.str();
-  rgg.Write(output_file.c_str(), ',');
+  if (DEBUG)
+    cout << "Estimated average degree = " << avg_degree << endl <<
+      "Actual average degree = " << actual_avg_degree << endl;
+
+
+  file_base_name_s << '_' << num_nodes << '_' << avg_degree;
+  string output_file_base_name = file_base_name_s.str();
+  string rgg_output_file = output_file_base_name + ".csv";
+  rgg.Write(rgg_output_file.c_str(), ',');
 
   return 0;
 }
