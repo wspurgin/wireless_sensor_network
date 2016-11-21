@@ -16,10 +16,12 @@ else
         CXX = g++
 endif
 
+# For debugging
+# CXXFLAGS = -fopenmp -g -std=c++11
 CXXFLAGS = -fopenmp -O2 -std=c++11
 
 # All lib objects
-ALL = mat.o vec.o
+ALL = mat.o vec.o rggio.o
 
 # Get current working directory
 # and specify lib directory
@@ -34,13 +36,19 @@ ALL := $(addprefix $(BIN_DIR), $(ALL))
 # makefile targets
 all : wsn
 
+$(BIN_DIR)wsn_backbone.out : $(MAKE_DIR)wsn_backbone.cpp $(ALL) | $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) $(MAKE_DIR)wsn_backbone.cpp $(ALL) -o $@
+
 $(BIN_DIR)gen_rgg.out : $(MAKE_DIR)gen_rgg.cpp $(ALL) | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) $(MAKE_DIR)gen_rgg.cpp $(ALL) -o $@
 
-$(BIN_DIR)mat.o : $(LIB_DIR)mat.cpp | $(BIN_DIR)
+$(BIN_DIR)rggio.o : $(LIB_DIR)rggio.h $(LIB_DIR)rggio.cpp $(BIN_DIR)mat.o | $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) -c $(LIB_DIR)rggio.cpp -o $@
+
+$(BIN_DIR)mat.o : $(LIB_DIR)mat.h $(LIB_DIR)mat.cpp | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) -c $(LIB_DIR)mat.cpp -o $@
 
-$(BIN_DIR)vec.o : $(LIB_DIR)vec.cpp | $(BIN_DIR)
+$(BIN_DIR)vec.o : $(LIB_DIR)vec.h $(LIB_DIR)vec.cpp | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) -c $(LIB_DIR)vec.cpp -o $@
 
 $(BIN_DIR):
@@ -59,6 +67,6 @@ print_vars:
 	@echo "BIN_DIR => $(BIN_DIR)"
 	@echo "ALL => $(ALL)"
 
-wsn: $(BIN_DIR)gen_rgg.out
+wsn: $(BIN_DIR)gen_rgg.out $(BIN_DIR)wsn_backbone.out
 	@echo "Finished building Wireless Sensory Network"
 ####### End of Makefile #######
