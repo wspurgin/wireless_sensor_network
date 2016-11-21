@@ -10,6 +10,7 @@ if (length(argv) < 1) {
 
 rgg_files <- argv
 
+orig <- par(pty="s")
 sapply(rgg_files, function(rgg_file) {
   rgg <- read_csv(rgg_file, col_names = c("x", "y"))
   dev <- plot(rgg)
@@ -19,3 +20,4 @@ sapply(rgg_files, function(rgg_file) {
   plot(rgg, cex=0.5)
   dev.off() #only 129kb in size
 })
+par(orig)

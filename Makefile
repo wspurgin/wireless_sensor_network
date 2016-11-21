@@ -69,4 +69,7 @@ print_vars:
 
 wsn: $(BIN_DIR)gen_rgg.out $(BIN_DIR)wsn_backbone.out
 	@echo "Finished building Wireless Sensory Network"
+
+plot_rgg:
+	@find -E . -regex ".*/((disk)|(plane))_[0-9]+_[0-9]+\.csv" | xargs Rscript R/plot_rgg.R
 ####### End of Makefile #######
