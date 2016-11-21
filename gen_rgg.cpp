@@ -24,6 +24,7 @@
 
 #include "lib/mat.h"
 #include "lib/LList.h"
+#include "lib/point.h"
 
 #define DEBUG true
 
@@ -35,14 +36,6 @@ string ERRO = "\x1b[31m";
 string INFO = "\x1b[34m";
 string SUCC = "\x1b[32m";
 string ENDC = "\x1b[0m";
-
-struct point {
-  luint id;
-  double x;
-  double y;
-
-  point(luint i, double j, double k):id(i),x(j),y(k){}
-};
 
 const string error(const string message) {
   stringstream ss;
