@@ -158,9 +158,10 @@ public:
   void append(const E& item)
   {
     Node<E>* n = new Node<E>(item);
-    this->tail_->next_ = n;
     if(isEmpty())
       this->head_ = n;
+    else
+      this->tail_->next_ = n;
     this->tail_ = n;
   }
 
