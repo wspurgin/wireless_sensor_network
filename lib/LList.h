@@ -22,12 +22,14 @@ public:
   {
   public:
     Node<T>* next_;
+    Node<T>* prev_;
     T data_;
     //Constructors
-    Node(const T& data, Node* n = NULL)
+    Node(const T& data, Node* n = NULL, Node* p = NULL)
     {
       this->data_ = data;
       this->next_ = n;
+      this->prev_ = p;
     }
   };
 
@@ -48,6 +50,8 @@ public:
 
 
     void operator++() { curr_ = curr_->next_; }
+
+    void operator--() { curr_ = curr_->prev_; }
 
     bool operator==(const iterator& rhs) const
     {
@@ -101,6 +105,11 @@ public:
     return iterator(this->tail_->next_);
   }
 
+  iterator last() const
+  {
+    return iterator(this->tail_);
+  }
+
   //unordered insert
   Node<E>* insert(const E& item)
   {
@@ -108,6 +117,8 @@ public:
     n->next_ = this->head_;
     if(isEmpty())
       this->tail_ = n;
+    else
+      this->head_->prev_ = n;
     this->head_ = n;
     return n;
   }
@@ -119,6 +130,7 @@ public:
       this->head_ = n;
     else
       this->tail_->next_ = n;
+    n->prev_ = this->tail_;
     this->tail_ = n;
     return n;
   }
@@ -148,23 +160,22 @@ public:
     if(pos < 0)
       throw out_of_range(err_string);
     Node<E>* curr = this->head_;
-    Node<E>* prev = this->head_;
 
     for(int i = 0; i < pos; i++)
     {
       if(curr == NULL)
         throw out_of_range(err_string);
-      prev = curr;
       curr = curr->next_;
     }
 
     if(curr == NULL)
       throw out_of_range(err_string);
-    prev->next_ = curr->next_;
+    curr->prev_->next_ = curr->next_;
+    curr->next_->prev_ = curr->prev_;
 
     E temp = curr->data_;
     if(curr == this->tail_ && curr != this->head_)
-      this->tail_ = prev;
+      this->tail_ = curr->prev_;
     else if(curr == this->head_ && curr != this->tail_)
       this->head_ = curr->next_;
     else if(curr == this->head_ && curr == this->tail_)

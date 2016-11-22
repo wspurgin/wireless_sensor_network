@@ -20,6 +20,8 @@ endif
 # CXXFLAGS = -fopenmp -g -std=c++11
 CXXFLAGS = -fopenmp -O2 -std=c++11
 
+TEST_CXXFLAGS = -fopenmp -g -std=c++11
+
 # All lib objects
 ALL = mat.o vec.o rggio.o
 
@@ -30,11 +32,17 @@ MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 MAKE_DIR := $(dir $(MKFILE_PATH))
 BIN_DIR := $(MAKE_DIR)bin/
 LIB_DIR = $(MAKE_DIR)lib/
+TEST_DIR := $(MAKE_DIR)tests/
 
 ALL := $(addprefix $(BIN_DIR), $(ALL))
 
 # makefile targets
 all : wsn
+
+tests : $(BIN_DIR)test_llist.out
+
+$(BIN_DIR)test_llist.out : $(TEST_DIR)test_llist.cpp $(LIB_DIR)LList.h | $(BIN_DIR)
+	$(CXX) $(TEST_CXXFLAGS) $(TEST_DIR)test_llist.cpp -o $@
 
 $(BIN_DIR)wsn_backbone.out : $(MAKE_DIR)wsn_backbone.cpp $(ALL) | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) $(MAKE_DIR)wsn_backbone.cpp $(ALL) -o $@
