@@ -20,6 +20,8 @@
 *~
 *.swp
 
+bin/
+
 .Rproj.user
 .Rhistory
 .RData
