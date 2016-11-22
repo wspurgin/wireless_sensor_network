@@ -21,9 +21,11 @@
 #include <algorithm>
 #include <unordered_map>
 #include <vector>
+#include <tuple>
 
 #include "lib/mat.h"
 #include "lib/LList.h"
+#include "lib/Stack.h"
 #include "lib/point.h"
 #include "lib/rggio.h"
 
@@ -39,8 +41,11 @@ int main(int argc, const char *argv[])
 
   vector<point> rgg = load_rgg(argv[1]);
   cout << "Retrieved RGG data points from '" << argv[1] << "'" << endl;
+
   luint up_to = min((int) rgg.size(), 10);
+
   unordered_map<luint, LList<point*> > adjacency_list = load_adj_list(rgg, argv[2]);
+
   cout << "Number of points: " << rgg.size() << endl << "Showing first " <<
     up_to << endl;
   for (luint i = 0; i < up_to; ++i) {
@@ -51,5 +56,41 @@ int main(int argc, const char *argv[])
       cout << (*child)->id << ' ';
     cout << endl;
   }
+
+  // Create degree list
+
+  // Index for quick access/lookup (individual
+  vector<
+        LList<point *>::Node<point *> *
+      > placement_dg_lst;
+
+  // Index indicates degree, value is a list of nodes with that degree.
+  luint max_degree = 0;
+  luint min_degree = -1;
+  unordered_map<luint, Stack<point*> > degree_list;
+  for(auto p = rgg.begin(); p != rgg.end(); ++p) {
+    luint id = (*p).id;
+    luint degree = adjacency_list[id].length();
+    if (degree > max_degree) max_degree = degree;
+    if (degree < min_degree) min_degree = degree;
+    auto node = degree_list[degree].push(&(*p));
+    placement_dg_lst.push_back(node);
+  }
+
+  // Smallest Last Degree Ordering
+  vector<point *> sm_last_dg;
+  for(luint i = min_degree; i <= max_degree; ++i) {
+    Stack<point*> * min_dg_list = &(degree_list[i]);
+    while(min_dg_list->size() > 0) {
+      // Cut the current node from the current minimum degree
+      auto pt = min_dg_list->pop();
+      sm_last_dg.push_back(pt);
+      // Update all the connect nodes to this point
+      auto children = &adjacency_list[pt->id];
+      for (auto child = children->begin(); child != children->end(); ++child) {
+      }
+    }
+  }
+
   return 0;
 }

@@ -17,7 +17,7 @@ using namespace std;
 
 template <typename E> class LList
 {
-private:
+public:
   template <typename T> class Node
   {
   public:
@@ -31,53 +31,6 @@ private:
     }
   };
 
-  Node<E>* head_;
-  Node<E>* tail_;
-
-  //recursive destructor function
-  void destroy()
-  {
-    while(this->head_!= NULL)
-    {
-      Node<E>* curr = this->head_;
-      this->head_ = this->head_->next_;
-      delete curr;
-    }
-    this->head_ = NULL;
-    this->tail_ = NULL;
-  }
-
-  LList<E>& copy(const LList<E>& rhs)
-  {
-    if(!rhs.isEmpty())
-    {
-      iterator copy = rhs.begin();
-      // copy values from first node
-      this->head_ = new Node<E>(*copy);
-      this->tail_ = this->head_;
-      Node<E>* curr = this->head_->next_;
-      ++copy;
-
-      //Copy the remaining records
-      while(copy != rhs.end())
-      {
-        curr = new Node<E>(*copy);
-        // set previous node to point to the current node
-        this->tail_->next_ = curr;
-        /* set tail_ to the current node as well
-        *(will leave tail_ pointing to the last node)
-        */
-        this->tail_ = curr;
-        curr = curr->next_;
-        ++copy;
-      }
-    }
-    return *this;
-  }
-
-
-public:
-
   class iterator
   {
   public:
@@ -87,9 +40,12 @@ public:
 
     iterator(const iterator& rhs) { this->curr_ = rhs.curr_; }
 
+    Node<E>* node() { return curr_; }
+
     //operators
 
     E& operator*() { return curr_->data_; }
+
 
     void operator++() { curr_ = curr_->next_; }
 
@@ -146,16 +102,17 @@ public:
   }
 
   //unordered insert
-  void insert(const E& item)
+  Node<E>* insert(const E& item)
   {
     Node<E>* n = new Node<E>(item);
     n->next_ = this->head_;
     if(isEmpty())
       this->tail_ = n;
     this->head_ = n;
+    return n;
   }
 
-  void append(const E& item)
+  Node<E>* append(const E& item)
   {
     Node<E>* n = new Node<E>(item);
     if(isEmpty())
@@ -163,6 +120,7 @@ public:
     else
       this->tail_->next_ = n;
     this->tail_ = n;
+    return n;
   }
 
   //find 'item' in LList
@@ -226,9 +184,9 @@ public:
   }
 
   //Number of nodes in List
-  int length() const
+  long unsigned int length() const
   {
-    int count = 0;
+    long unsigned int count = 0;
     for(iterator i = begin(); i != end(); ++i)
       count++;
     return count;
@@ -275,6 +233,53 @@ public:
     rhs.write(out);
     return out;
   }
+
+private:
+
+  Node<E>* head_;
+  Node<E>* tail_;
+
+  //recursive destructor function
+  void destroy()
+  {
+    while(this->head_!= NULL)
+    {
+      Node<E>* curr = this->head_;
+      this->head_ = this->head_->next_;
+      delete curr;
+    }
+    this->head_ = NULL;
+    this->tail_ = NULL;
+  }
+
+  LList<E>& copy(const LList<E>& rhs)
+  {
+    if(!rhs.isEmpty())
+    {
+      iterator copy = rhs.begin();
+      // copy values from first node
+      this->head_ = new Node<E>(*copy);
+      this->tail_ = this->head_;
+      Node<E>* curr = this->head_->next_;
+      ++copy;
+
+      //Copy the remaining records
+      while(copy != rhs.end())
+      {
+        curr = new Node<E>(*copy);
+        // set previous node to point to the current node
+        this->tail_->next_ = curr;
+        /* set tail_ to the current node as well
+        *(will leave tail_ pointing to the last node)
+        */
+        this->tail_ = curr;
+        curr = curr->next_;
+        ++copy;
+      }
+    }
+    return *this;
+  }
+
 };
 
 #endif
