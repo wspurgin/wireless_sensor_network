@@ -32,7 +32,7 @@ vector<point> load_rgg(const char* file_path) {
   return loader;
 }
 
-unordered_map<luint, LList<point*> > load_adj_list(vector<point> points, const char* file_path) {
+unordered_map<luint, LList<point*> > load_adj_list(vector<point>& points, const char* file_path) {
   unordered_map<luint, LList<point*> > adj_list;
 
   fstream fin(file_path);
@@ -58,6 +58,11 @@ unordered_map<luint, LList<point*> > load_adj_list(vector<point> points, const c
   }
   else {
     cerr << "Could not open file " << file_path << endl;
+  }
+
+  for (auto i = points.begin(); i != points.end(); ++i) {
+    i->degree = (long unsigned int) adj_list[i->id].length();
+    i->reset();
   }
   return adj_list;
 }

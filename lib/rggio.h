@@ -15,6 +15,6 @@
 
 vector<point> load_rgg(const char* file_path);
 
-unordered_map<luint, LList<point*> > load_adj_list(vector<point> points, const char* file_path);
+unordered_map<luint, LList<point*> > load_adj_list(vector<point>& points, const char* file_path);
 
 #endif
