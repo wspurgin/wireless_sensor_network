@@ -7,10 +7,9 @@
  * the optimal coloring, we implement the smallest last vertex ordering. From
  * this coloring we attempt to find the largest 4 bipartite subgraphs of the
  * RGG (these subgraphs are termed backbones). With these backbones, we want to
- * select the two that have the most edges in their maximum
- * gen_rgg <num_nodes> <average_degree> [plane|disk]
+ * select the two that have the most edges.
  *
- * ./gen_rgg 6400 80 plane
+ * ./wsn_backbone rgg_points.csv rgg_adjacency_list.txt
  *
  * Note that the default geometric surface is a plane.
  */
@@ -21,7 +20,8 @@
 #include <algorithm>
 #include <unordered_map>
 #include <vector>
-#include <tuple>
+#include <utility>
+#include <array>
 
 #include "lib/mat.h"
 #include "lib/LList.h"
@@ -46,21 +46,17 @@ int main(int argc, const char *argv[])
 
   unordered_map<luint, LList<point*> > adjacency_list = load_adj_list(rgg, argv[2]);
 
+  auto original_adj = adjacency_list;
+
   cout << "Number of points: " << rgg.size() << endl << "Showing first " <<
     up_to << endl;
-  for (luint i = 0; i < up_to; ++i) {
+  for (luint i = 0; i < up_to; ++i)
     cout << "id: " << rgg[i].id << ", x = " << rgg[i].x << ", y = " << rgg[i].y << endl;
-    auto children = &adjacency_list[rgg[i].id];
-    cout << '\t';
-    for (auto child = children->begin(); child != children->end(); ++child)
-      cout << (*child)->id << ' ';
-    cout << endl;
-  }
+  cout << endl;
 
   // Create degree list
-
   // Index for quick access/lookup (individual
-  vector<
+  unordered_map<luint,
         LList<point *>::Node<point *> *
       > placement_dg_lst;
 
@@ -69,27 +65,71 @@ int main(int argc, const char *argv[])
   luint min_degree = -1;
   unordered_map<luint, Stack<point*> > degree_list;
   for(auto p = rgg.begin(); p != rgg.end(); ++p) {
-    luint id = (*p).id;
-    luint degree = adjacency_list[id].length();
+    luint degree = (*p).degree;
     if (degree > max_degree) max_degree = degree;
     if (degree < min_degree) min_degree = degree;
     auto node = degree_list[degree].push(&(*p));
-    placement_dg_lst.push_back(node);
+    placement_dg_lst[node->data_->id] = node;
   }
 
   // Smallest Last Degree Ordering
   vector<point *> sm_last_dg;
-  for(luint i = min_degree; i <= max_degree; ++i) {
-    Stack<point*> * min_dg_list = &(degree_list[i]);
-    while(min_dg_list->size() > 0) {
-      // Cut the current node from the current minimum degree
-      auto pt = min_dg_list->pop();
-      sm_last_dg.push_back(pt);
-      // Update all the connect nodes to this point
-      auto children = &adjacency_list[pt->id];
-      for (auto child = children->begin(); child != children->end(); ++child) {
+  for(luint j = rgg.size(); j >= 1; --j) {
+    Stack<point*> * min_dg_list;
+
+    // Find first non-empty smallest degree list
+    luint curr_min_degree;
+    for (auto i = 0; i < max_degree; ++i) {
+      if (degree_list[i].size() > 0) {
+        curr_min_degree = i;
+        min_dg_list = &(degree_list[i]);
+        break;
       }
     }
+
+    array<char, 5> timer_chars{ ' ', '|', '/', '-', '\\' };
+    cout << '\r' << timer_chars[(j - 1) % timer_chars.size()] << " j: " << j << ' '
+      << "curr_min_degree: " << curr_min_degree << ' ' << "size: "
+      << min_dg_list->size();
+
+    // Cut the current node from the current minimum degree
+    auto pt = min_dg_list->pop();
+    sm_last_dg.push_back(pt);
+
+    // Update all the connecting nodes to the point (pt) (i.e. H - v_j)
+    auto children = &adjacency_list[pt->id];
+    for (auto child = children->begin(); child != children->end(); ++child) {
+      // Update Children adjacency to remove the current point (pt) (i.e. v_j).
+      auto node = placement_dg_lst[(*child)->id];
+      (&adjacency_list[(*child)->id])->remove(pt);
+
+      // Retrieve the current degree of this child
+      luint degree = node->data_->curr_degree;
+
+      // Remove the child from its spot in the i-th degree list. Then add it to
+      // the (i-1) degree list. Lastly, update the lookup table for the new
+      // child node.
+      point* child_pt = (&degree_list[degree])->list()->remove(LList<point*>::iterator(node));
+      auto child_new_node = (&degree_list[degree-1])->push(child_pt);
+      placement_dg_lst[(*child)->id] = child_new_node;
+
+      // Finally subtract 1 from the degree of the current child
+      node->data_->curr_degree--;
+    }
+
+    // Erase current node (i.e. v_j) from current adjacency list (i.e. H)
+    adjacency_list.erase(pt->id);
+  }
+
+
+  // Now reverse the ordering
+  // reverse(sm_last_dg.begin(), sm_last_dg.end());
+
+  cout << endl << "Smallest Last Ordering: (showing " << up_to << " entries)"
+    << endl;
+
+  for (luint i = 0; i < up_to; ++i) {
+    cout << i << " - id: " << sm_last_dg[i]->id << endl;
   }
 
   return 0;
