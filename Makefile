@@ -17,10 +17,10 @@ else
 endif
 
 # For debugging
-# CXXFLAGS = -fopenmp -g -std=c++11
-CXXFLAGS = -fopenmp -O2 -std=c++11
+# CXXFLAGS = -g -std=c++11
+CXXFLAGS = -O2 -std=c++11
 
-TEST_CXXFLAGS = -fopenmp -g -std=c++11
+TEST_CXXFLAGS = -g -std=c++11
 
 # All lib objects
 ALL = mat.o vec.o rggio.o
@@ -37,7 +37,7 @@ TEST_DIR := $(MAKE_DIR)tests/
 ALL := $(addprefix $(BIN_DIR), $(ALL))
 
 # makefile targets
-all : wsn
+all : wsn | $(LIB_DIR)point.h
 
 tests : $(BIN_DIR)test_llist.out
 
