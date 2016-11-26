@@ -35,19 +35,24 @@ public:
 
   class iterator
   {
+
   public:
+
+    static iterator& wrap(Node<E>* ptr) { return iterator(ptr); }
+
     Node<E>* curr_;
 
     iterator(Node<E>* ptr) { this->curr_ =  ptr; }
 
     iterator(const iterator& rhs) { this->curr_ = rhs.curr_; }
 
-    Node<E>* node() { return curr_; }
+    Node<E>* node() { return this->curr_; }
 
     //operators
 
     E& operator*() { return curr_->data_; }
 
+    E* operator->() { return &(this->curr_->data_); }
 
     void operator++() { curr_ = curr_->next_; }
 
@@ -93,6 +98,8 @@ public:
       destroy();
   }
 
+  iterator begin() { return iterator(this->head_); }
+
   iterator begin() const
   {
     return iterator(this->head_);
@@ -110,7 +117,8 @@ public:
     return iterator(this->tail_);
   }
 
-  //unordered insert
+  // TODO instead of returning Node pointers (asking for trouble). Wrap them
+  // in an iterator.
   Node<E>* insert(const E& item)
   {
     Node<E>* n = new Node<E>(item);
@@ -123,6 +131,20 @@ public:
     return n;
   }
 
+  Node<E>* insert(Node<E>* n)
+  {
+    n->next_ = this->head_;
+    n->prev_ = nullptr;
+    if(isEmpty())
+      this->tail_ = n;
+    else
+      this->head_->prev_ = n;
+    this->head_ = n;
+    return n;
+  }
+
+  // TODO instead of returning Node pointers (asking for trouble). Wrap them
+  // in an iterator.
   Node<E>* append(const E& item)
   {
     Node<E>* n = new Node<E>(item);
@@ -131,6 +153,18 @@ public:
     else
       this->tail_->next_ = n;
     n->prev_ = this->tail_;
+    this->tail_ = n;
+    return n;
+  }
+
+  Node<E>* append(Node<E>* n)
+  {
+    if(isEmpty())
+      this->head_ = n;
+    else
+      this->tail_->next_ = n;
+    n->prev_ = this->tail_;
+    n->next_ = nullptr;
     this->tail_ = n;
     return n;
   }
@@ -150,35 +184,56 @@ public:
   * Removes the node and returns its data,
   * if the value of pos is out of bounds, then the function fails.
   */
-  E remove(int pos)
+  E remove(E item)
   {
-    stringstream err_string_io;
-    err_string_io << "Out of bounds exception, recieved " <<  pos
-      << " on List of size " << length();
-    string err_string = err_string_io.str();
-
-    if(pos < 0)
-      throw out_of_range(err_string);
-    Node<E>* curr = this->head_;
-
-    for(int i = 0; i < pos; i++)
-    {
-      if(curr == NULL)
-        throw out_of_range(err_string);
-      curr = curr->next_;
+    string err_string = "Out of Range error in LList";
+    iterator pos = begin();
+    for (iterator i = begin(); i != end(); ++i) {
+      pos = i;
+      if ((*i) == item)
+        break;
     }
+    if (pos == end()) // item wasn't found
+      throw out_of_range(err_string);
+    return remove(pos);
+  }
+
+  // E remove(int pos)
+  // {
+  //   string err_string = "Out of Range error in LList";
+
+  //   if(pos < 0)
+  //     throw out_of_range(err_string);
+
+  //   iterator it = begin();
+  //   for(int i = 0; i < pos; i++)
+  //   {
+  //     if(it == end())
+  //       throw out_of_range(err_string);
+  //     ++it;
+  //   }
+
+  //   return remove(it);
+  // }
+
+  E remove(iterator it) {
+    Node<E>* curr = it.node();
 
     if(curr == NULL)
-      throw out_of_range(err_string);
-    curr->prev_->next_ = curr->next_;
-    curr->next_->prev_ = curr->prev_;
+      throw out_of_range("Out of Range error on LList");
+    if (curr->prev_ != NULL) {
+      curr->prev_->next_ = NULL;
+      curr->prev_->next_ = curr->next_;
+    }
+    if (curr->next_ != NULL)
+      curr->next_->prev_ = curr->prev_;
 
     E temp = curr->data_;
     if(curr == this->tail_ && curr != this->head_)
       this->tail_ = curr->prev_;
-    else if(curr == this->head_ && curr != this->tail_)
+    if(curr == this->head_ && curr != this->tail_)
       this->head_ = curr->next_;
-    else if(curr == this->head_ && curr == this->tail_)
+    if(curr == this->head_ && curr == this->tail_)
       this->head_ = this->tail_ = NULL;
 
     delete curr;
@@ -250,7 +305,7 @@ private:
   Node<E>* head_;
   Node<E>* tail_;
 
-  //recursive destructor function
+  // Iterative destructor function
   void destroy()
   {
     while(this->head_!= NULL)

@@ -33,8 +33,10 @@ public:
   //push elements onto the stack
   typename LList<T>::template Node<T>* push(const T& item) { return this->list_.insert(item); }
 
+  typename LList<T>::template Node<T>* push(typename LList<T>::template Node<T>* n) { return this->list_.insert(n); }
+
   //remove the last pushed element
-  T pop() { return this->list_.remove(0); }
+  T pop() { return this->list_.remove(this->list_.begin()); }
 
   //returns the number of elements in the stack
   long unsigned int size() const { return this->list_.length(); }
@@ -42,7 +44,7 @@ public:
   void empty() { this->list_.empty(); }
 
   //returns the list of the stack
-  LList<T> list() const { return this->list_; }
+  LList<T>* list() { return &(this->list_); }
 
   //overloaded assignment operator
   Stack<T>& operator=(const Stack<T>& rhs) { copy(rhs); return *this; }
