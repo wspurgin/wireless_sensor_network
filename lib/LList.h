@@ -58,6 +58,17 @@ public:
 
     void operator--() { curr_ = curr_->prev_; }
 
+    iterator operator+(long unsigned int i) {
+      iterator t = *this;
+      long unsigned int j = 0;
+      while(t.curr_ != NULL && j != i) {
+        ++t;
+        j++;
+      }
+      if (j != i) throw out_of_range("Requested Iterator Out of Range");
+      return t;
+    }
+
     bool operator==(const iterator& rhs) const
     {
       if(this->curr_ == rhs.curr_)
@@ -116,6 +127,8 @@ public:
   {
     return iterator(this->tail_);
   }
+
+  E& operator[](long unsigned int i) { return *(begin()+i); }
 
   // TODO instead of returning Node pointers (asking for trouble). Wrap them
   // in an iterator.

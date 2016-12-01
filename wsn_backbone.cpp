@@ -73,7 +73,7 @@ int main(int argc, const char *argv[])
   }
 
   // Smallest Last Degree Ordering
-  vector<point *> sm_last_dg;
+  LList<point *> sm_last_dg;
   for(luint j = rgg.size(); j >= 1; --j) {
     Stack<point*> * min_dg_list;
 
@@ -94,7 +94,7 @@ int main(int argc, const char *argv[])
 
     // Cut the current node from the current minimum degree
     auto pt = min_dg_list->pop();
-    sm_last_dg.push_back(pt);
+    sm_last_dg.insert(pt);
 
     // Update all the connecting nodes to the point (pt) (i.e. H - v_j)
     auto children = &adjacency_list[pt->id];
@@ -121,9 +121,6 @@ int main(int argc, const char *argv[])
     adjacency_list.erase(pt->id);
   }
 
-
-  // Now reverse the ordering
-  // reverse(sm_last_dg.begin(), sm_last_dg.end());
 
   cout << endl << "Smallest Last Ordering: (showing " << up_to << " entries)"
     << endl;
