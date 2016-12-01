@@ -1,0 +1,115 @@
+
+%--------------------------------------------------------------------
+% Document Style
+%--------------------------------------------------------------------
+\documentclass[12pt]{report}
+\usepackage{smu_report}
+\usepackage{epsf}
+\usepackage{amsmath}
+\usepackage{graphicx}
+% \usepackage[caption=false]{subfig}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{subcaption}
+\usepackage{verbatim}
+%\usepackage{algorithm}
+%\usepackage{algorithmic}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage[export]{adjustbox}
+
+\linespread{1.6}
+\reportdraft{}
+
+\begin{document}
+
+%===================================================================
+%   Change information used to create front pages of report
+%===================================================================
+%%
+%%  last name, first name, initial
+%%
+ \Name{Spurgin}{William D.}{} %don't put anything in the last brackets
+
+%%
+%% title -- you have up to three lines to specify your title
+%% each line should be no more than 48 characters long
+%%
+ \Title{CSE 7350: Final Report}
+       {Constructing Wireless Sensory Network Backbones:}
+       {A Summary of Algorithms and Data Structures with Simulations}
+
+ \Major{Computer Science}
+ \University{Southern Methodist University}
+ \School{Bobby B. Lyle College: School of Engineering}
+%%
+%% is this a Project report, final report, research paper, or something else?
+%% You can put whatever you want as the report type
+%%
+ \ReportType{Project Report}
+
+ \ClassName{CSE 7350: Algorithm Engineering}
+
+%===================================================================
+%   Create the front pages of the report
+%===================================================================
+
+ \TitlePages{}
+
+%%
+%% include your acknowledgements
+%% If no dedication, move Acknowledgement to where dedication is and add to
+%% table of contents
+%% \addcontentsline{toc}{chapter}{\protect \noindent {ACKNOWLEDGMENTS}}
+ % \begin{Acknowledgment}
+ % \input{acknow}
+ % \end{Acknowledgment}
+
+%%
+%% include your abstract
+%%
+ % \begin{Abstract}
+ % \input{abstract}
+ % \end{Abstract}
+
+ \PreliminaryPages{}
+
+% Uncomment to insert a list of symbols from symbols.tex (or elsewhere)
+ %\begin{listofsymbols}
+ %\input{symbols}
+ %\end{listofsymbols}
+
+%%
+%% include any dedication you want
+%%
+ % \Dedicate{I dedicate this report to Nastasha, who put up with my many late
+ % nights of working.}
+
+%===================================================================
+%   Begin the body of the report
+%===================================================================
+\begin{report}
+%===================================================================
+%   Chapters are included here
+%===================================================================
+
+\input{chap_intro.tex}
+
+%===================================================================
+%   Appendices go here if no appendix, remove \StartAppendix
+%===================================================================
+%\StartAppendix; %All chapters from this point are treated as appendices
+
+%\input{app.tex}
+%\input{app2.tex}
+
+%===================================================================
+%   Bibliography goes here
+%===================================================================
+
+\bibliographystyle{ieeetr}
+\bibliography{report}
+
+\end{report}
+
+\end{document}
