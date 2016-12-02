@@ -22,6 +22,7 @@
 #include <vector>
 #include <utility>
 #include <array>
+#include <set>
 
 #include "lib/mat.h"
 #include "lib/LList.h"
@@ -127,6 +128,46 @@ int main(int argc, const char *argv[])
 
   for (luint i = 0; i < up_to; ++i) {
     cout << i << " - id: " << sm_last_dg[i]->id << endl;
+  }
+
+  // reset adjacency list
+  adjacency_list = original_adj;
+
+  // Coloring from this vertex ordering, we need to color the graph points
+  luint base_color = 1;
+  for (auto v = sm_last_dg.begin(); v != sm_last_dg.end(); ++v) {
+    luint curr_color = base_color;
+
+    // Collect the neighboorhood of colors, insert for a set is logorithmic in
+    // the size of the container.
+    set<luint> neighborhood_colors;
+    auto children = adjacency_list[(*v)->id];
+    for (auto i = children.begin(); i != children.end(); ++i) {
+      neighborhood_colors.insert((*i)->color);
+    }
+
+    // We'll start by checking if we can assign the current color and continue
+    // incrementing the color value by one till we can assign the color. In this
+    // way, we will always assign the lowest possible color.
+    //
+    // The std::set is typically implemented as a red-black tree, so search time
+    // is logorithmic in the size of the set. So in this case its O(lg |E_v|)
+    // where |E_v| is the number of edges. In reality, since there are no
+    // duplicates in a set, it can be less than lg(|E_v|).
+    while(neighborhood_colors.find(curr_color) != neighborhood_colors.end())
+      curr_color++;
+
+    // Finally, assign the first available color.
+    (*v)->color = curr_color;
+  }
+
+
+  cout << endl << "Coloring of points: (showing " << up_to << " entries)"
+    << endl;
+
+  for (luint i = 0; i < up_to; ++i) {
+    cout << "id : " << sm_last_dg[i]->id << " - color: " << sm_last_dg[i]->color
+      << endl;
   }
 
   return 0;
