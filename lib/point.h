@@ -31,7 +31,7 @@ struct point {
     this->reset();
   }
 
-  bool operator==(const point& rhs) const { rhs.id == this->id; }
+  bool operator==(const point& rhs) const { return rhs.id == this->id; }
 };
 
 #endif
