@@ -62,7 +62,7 @@ int main(int argc, const char *argv[])
    */
 
   // degree-when-deleted stats vector
-  vector<luint> degree_when_deleted;
+  vector<pair<luint, luint> > degree_when_deleted;
 
   // Create degree list
   // Index for quick access/lookup of (individual placement in list)
@@ -107,7 +107,7 @@ int main(int argc, const char *argv[])
 
     // Add statistic of what degree at this iteration was deleted. When we start
     // plunging in this distribution, then it indicates a terminal clique size.
-    degree_when_deleted.push_back(curr_min_degree);
+    degree_when_deleted.push_back(pair<luint, luint>(curr_min_degree, pt->degree));
 
     // Update all the connecting nodes to the point (pt) (i.e. H - v_j)
     auto children = &adjacency_list[pt->id];
@@ -181,6 +181,45 @@ int main(int argc, const char *argv[])
     cout << "id : " << sm_last_dg[i]->id << " - color: " << sm_last_dg[i]->color
       << endl;
   }
+
+  // Find δ + 1 largest independent sets, (where δ is the minimum degree).
+  // To find the largest independent sets, we simply have to find the δ + 1
+  // lagest color classes. However, the requirement states that we only need to
+  // find the first largest 4. If we found the largest δ + 1, then we can
+  // guarantee maximum coverage by the bipartite backbone.
+
+
+
+  // Write out smallest last ordering, and coloring
+  stringstream base_file_s, graph_output_file_s, degree_when_deleted_s;
+  string buffer(argv[1]);
+  base_file_s << buffer.substr(0, strstr(argv[1], ".") - argv[1]);
+  graph_output_file_s << base_file_s.str() << "_graph.csv";
+  degree_when_deleted_s << base_file_s.str() << "_degree_when_deleted.csv";
+
+  fstream fout;
+  fout.open(graph_output_file_s.str().c_str(), ios_base::out | ios_base::trunc);
+  fout << "id,x,y,degree,color,backbone" << endl;
+  for (auto v = sm_last_dg.begin(); v != sm_last_dg.end(); ++v) {
+    auto point = (*v);
+    fout << point->id << ',' << point->x << ',' << point->y << ','
+      << point->degree << ',' << point->color << ',';
+    if (point->hasBackbone())
+      fout << point->backbone;
+    fout << endl;
+  }
+  fout.close();
+
+  cout << endl << graph_output_file_s.str() << " written out." << endl;
+
+  fout.open(degree_when_deleted_s.str().c_str(), ios_base::out | ios_base::trunc);
+  fout << "iteration,degree_when_deleted,original_degree" << endl;
+  for (luint i = 0; i < degree_when_deleted.size(); ++i) {
+    fout << i << ',' << degree_when_deleted[i].first << ',' << degree_when_deleted[i].second << endl;
+  }
+  fout.close();
+
+  cout << degree_when_deleted_s.str() << " written out." << endl;
 
   return 0;
 }
