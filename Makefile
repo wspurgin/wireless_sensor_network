@@ -1,10 +1,10 @@
 ###################################################################
-#  Makefile for PCA of sdssD7
+#  Makefile for Wireless Sensory Networks Project
 #
 #  Will Spurgin
-#  SMU Mathematics & Computer Science
-#  Math 4370/6370
-#  21 April 2015
+#  SMU Computer Science
+#  CSE 7350
+#  October 10, 2016
 ###################################################################
 
 # compiler options  & flags
