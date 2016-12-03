@@ -17,6 +17,7 @@
 #include <sstream>
 #include <fstream>
 #include <cstdlib>
+#include <cstring>
 #include <algorithm>
 #include <unordered_map>
 #include <vector>
@@ -55,6 +56,14 @@ int main(int argc, const char *argv[])
     cout << "id: " << rgg[i].id << ", x = " << rgg[i].x << ", y = " << rgg[i].y << endl;
   cout << endl;
 
+
+  /*
+   * Smallest Last Ordering
+   */
+
+  // degree-when-deleted stats vector
+  vector<luint> degree_when_deleted;
+
   // Create degree list
   // Index for quick access/lookup of (individual placement in list)
   unordered_map<luint,
@@ -91,9 +100,14 @@ int main(int argc, const char *argv[])
     cout << '\r' << timer_chars[(j - 1) % timer_chars.size()] << " j: " << j
       << ' ' << "curr_min_degree: " << curr_min_degree << ' ';
 
+
     // Cut the current node from the current minimum degree
     auto pt = degree_list[curr_min_degree].pop();
     sm_last_dg.insert(pt);
+
+    // Add statistic of what degree at this iteration was deleted. When we start
+    // plunging in this distribution, then it indicates a terminal clique size.
+    degree_when_deleted.push_back(curr_min_degree);
 
     // Update all the connecting nodes to the point (pt) (i.e. H - v_j)
     auto children = &adjacency_list[pt->id];
