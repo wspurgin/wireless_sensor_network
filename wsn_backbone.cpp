@@ -76,25 +76,23 @@ int main(int argc, const char *argv[])
   // Smallest Last Degree Ordering
   LList<point *> sm_last_dg;
   for(luint j = rgg.size(); j >= 1; --j) {
-    Stack<point*> * min_dg_list;
 
     // Find first non-empty smallest degree list
     luint curr_min_degree;
     for (auto i = 0; i < max_degree; ++i) {
       if (degree_list[i].size() > 0) {
         curr_min_degree = i;
-        min_dg_list = &(degree_list[i]);
         break;
       }
     }
 
+    // Theres a space at the end of output so the buffer flushes correctly
     array<char, 5> timer_chars{ ' ', '|', '/', '-', '\\' };
-    cout << '\r' << timer_chars[(j - 1) % timer_chars.size()] << " j: " << j << ' '
-      << "curr_min_degree: " << curr_min_degree << ' ' << "size: "
-      << min_dg_list->size();
+    cout << '\r' << timer_chars[(j - 1) % timer_chars.size()] << " j: " << j
+      << ' ' << "curr_min_degree: " << curr_min_degree << ' ';
 
     // Cut the current node from the current minimum degree
-    auto pt = min_dg_list->pop();
+    auto pt = degree_list[curr_min_degree].pop();
     sm_last_dg.insert(pt);
 
     // Update all the connecting nodes to the point (pt) (i.e. H - v_j)
@@ -105,17 +103,17 @@ int main(int argc, const char *argv[])
       (&adjacency_list[(*child)->id])->remove(pt);
 
       // Retrieve the current degree of this child
-      luint degree = node->data_->curr_degree;
+      luint degree = (*child)->curr_degree;
 
-      // Remove the child from its spot in the i-th degree list. Then add it to
-      // the (i-1) degree list. Lastly, update the lookup table for the new
-      // child node.
-      point* child_pt = (&degree_list[degree])->list()->remove(LList<point*>::iterator(node));
-      auto child_new_node = (&degree_list[degree-1])->push(child_pt);
+      // Remove the child from its spot in the (curr_degree) degree list. Then
+      // add it to the (curr_degree-1) degree list. Lastly, update the lookup
+      // table for the new child node.
+      point* child_pt = degree_list[degree].remove(LList<point*>::iterator(node));
+      auto child_new_node = degree_list[degree-1].push(child_pt);
       placement_dg_lst[(*child)->id] = child_new_node;
 
       // Finally subtract 1 from the degree of the current child
-      node->data_->curr_degree--;
+      (*child)->curr_degree--;
     }
 
     // Erase current node (i.e. v_j) from current adjacency list (i.e. H)
