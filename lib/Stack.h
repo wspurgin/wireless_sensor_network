@@ -38,6 +38,8 @@ public:
   //remove the last pushed element
   T pop() { return this->list_.remove(this->list_.begin()); }
 
+  T remove(typename LList<T>::iterator i) { return this->list_.remove(i); }
+
   //returns the number of elements in the stack
   long unsigned int size() const { return this->list_.length(); }
 

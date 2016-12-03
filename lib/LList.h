@@ -109,8 +109,6 @@ public:
       destroy();
   }
 
-  iterator begin() { return iterator(this->head_); }
-
   iterator begin() const
   {
     return iterator(this->head_);
@@ -199,7 +197,6 @@ public:
   */
   E remove(E item)
   {
-    string err_string = "Out of Range error in LList";
     iterator pos = begin();
     for (iterator i = begin(); i != end(); ++i) {
       pos = i;
@@ -207,37 +204,17 @@ public:
         break;
     }
     if (pos == end()) // item wasn't found
-      throw out_of_range(err_string);
+      throw out_of_range("Out of Range error in LList");
     return remove(pos);
   }
-
-  // E remove(int pos)
-  // {
-  //   string err_string = "Out of Range error in LList";
-
-  //   if(pos < 0)
-  //     throw out_of_range(err_string);
-
-  //   iterator it = begin();
-  //   for(int i = 0; i < pos; i++)
-  //   {
-  //     if(it == end())
-  //       throw out_of_range(err_string);
-  //     ++it;
-  //   }
-
-  //   return remove(it);
-  // }
 
   E remove(iterator it) {
     Node<E>* curr = it.node();
 
     if(curr == NULL)
-      throw out_of_range("Out of Range error on LList");
-    if (curr->prev_ != NULL) {
-      curr->prev_->next_ = NULL;
+      throw out_of_range("Out of Range error in LList");
+    if (curr->prev_ != NULL)
       curr->prev_->next_ = curr->next_;
-    }
     if (curr->next_ != NULL)
       curr->next_->prev_ = curr->prev_;
 
@@ -246,8 +223,10 @@ public:
       this->tail_ = curr->prev_;
     if(curr == this->head_ && curr != this->tail_)
       this->head_ = curr->next_;
-    if(curr == this->head_ && curr == this->tail_)
-      this->head_ = this->tail_ = NULL;
+    if(curr == this->head_ && curr == this->tail_) {
+      this->head_ = NULL;
+      this->tail_ = NULL;
+    }
 
     delete curr;
     return temp;

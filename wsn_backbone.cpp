@@ -56,7 +56,7 @@ int main(int argc, const char *argv[])
   cout << endl;
 
   // Create degree list
-  // Index for quick access/lookup (individual
+  // Index for quick access/lookup of (individual placement in list)
   unordered_map<luint,
         LList<point *>::Node<point *> *
       > placement_dg_lst;
@@ -121,7 +121,7 @@ int main(int argc, const char *argv[])
   }
 
 
-  cout << endl << "Smallest Last Ordering: (showing " << up_to << " entries)"
+  cout << endl << endl << "Smallest Last Ordering: (showing " << up_to << " entries)"
     << endl;
 
   for (luint i = 0; i < up_to; ++i) {

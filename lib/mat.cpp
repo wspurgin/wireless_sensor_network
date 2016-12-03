@@ -599,7 +599,7 @@ Mat Mat::T() const {
 // Vec object whose data array points to an existing Mat column).
 Vec& Mat::AccessColumn(luint j) {
   // check that requested column exists
-  if (j < 0 || j > columns) {
+  if (j > columns) {
     throw std::invalid_argument("Column index out of range");
   }
 
