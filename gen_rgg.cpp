@@ -111,8 +111,8 @@ int main(int argc, const char *argv[])
   bool as_plane     = true;
 
   // Handle shape argument
+  string geo_shape = argv[3];
   if (argc > 3) {
-    string geo_shape = argv[3];
     transform(geo_shape.begin(), geo_shape.end(), geo_shape.begin(), ::tolower);
     if (geo_shape == "disk")
       as_plane = false;
@@ -174,6 +174,9 @@ int main(int argc, const char *argv[])
       min_degree << endl;
   }
 
+  luint num_edges = 0;
+  for (auto v : adjacency_list)
+    num_edges += v.second.length();
 
   // Output data files
   file_base_name_s << '_' << num_nodes << '_' << avg_degree;
@@ -181,6 +184,7 @@ int main(int argc, const char *argv[])
   string rgg_output_file = output_file_base_name + ".csv";
   string adjacency_list_output_file = output_file_base_name + "_adj_list.txt";
   string degree_dist_output_file = output_file_base_name + "_degree_dist.csv";
+  string stats_output_file = output_file_base_name + "_gen_stats.csv";
   rgg.Write(rgg_output_file.c_str(), ',');
 
   fstream fout;
@@ -196,6 +200,15 @@ int main(int argc, const char *argv[])
   fout.open(degree_dist_output_file, ios_base::out | ios_base::trunc);
   for(luint i = 0; i <= max_degree; ++i)
     fout << i << ',' << dist_degree[i] << endl;
+  fout.close();
+
+  fout.open(stats_output_file, ios_base::out | ios_base::trunc);
+  fout << "nodes,desired_avg_degree,shape,actual_average_degree,radius,num_edges,max_degree,min_degree" << endl;
+  fout <<  num_edges << ',' << avg_degree << ',' << geo_shape << ','
+    << actual_avg_degree << ',' << radius << ',' << num_edges
+    << ',' << max_degree << ',' << min_degree
+    << endl;
+  fout.close();
 
   return 0;
 }
