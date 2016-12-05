@@ -2,3 +2,7 @@
 *.aux
 *.log
 *.out
+*.tex
+*.bbl
+*.xml
+!template.latex
