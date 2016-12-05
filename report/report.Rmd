@@ -1,20 +1,22 @@
 ---
-title: Constructing Bipartite Backbones in Wireless Sensory Networks
-author:
-  - name: Will Spurgin
-    email: wspurgin@smu.edu
-    affiliation: Southern Methodist University - Bobby B. Lyle School of Engineering
+title: |
+       | Constructing Bipartite Backbones
+       | in Wireless Sensory Networks
+author: "Will Spurgin^[Masters Candidate, Department of Computer Science,
+Sourthern Methodist University. Email address:
+[wspurgin@smu.edu](mailto:wspurgin@smu.edu).]"
 abstract: |
   TODO FILL IN ABSTRACT
 bibliography: report.bib
-#output: rticles::elsevier_article
-#cls: elsevier-vancouver.csl
 csl: elsevier-vancouver.csl
 output:
-  rticles::elsevier_article:
+  pdf_document:
+    citation_package: biblatex
     keep_tex: true
+    fig_caption: yes
+    number_sections: yes
+    template: template.latex
 ---
-
 
 # Executive Summary
 
@@ -42,7 +44,19 @@ can achieve near __100%__ coverage from a bipartite backbone using the methods
 described in this report. The use of the methods presented in this report are
 strongly recommended for any application involving WSNs or scenarios that can be
 modeled as RGGs. Study of this work is not new[@mahjoub2010; @mahjoub2012], and
-much of that work corroborates the findings of this report.
+much of that work corroborates the findings of this report. The process for
+choosing for the backbones in a WSN are straight forward:
+
+1. For a graph $G$ (our RGG modeling a WSN), produce a Smallest Last
+   Ordering[@matula1983] $S_{G}$.
+2. For each vertex $v_j$ in $S_{G}$ color the vertex with the lowest available
+   color class that is not a color of the neighbors of $v_j$ (i.e. $N(v_j)$).
+3. For all 6 of the combination of the largest 4 color classes pick the top 2 by
+   the number of edges of their maximum connected subgraph.
+4. $\Delta$ These top two combinations are the two ideal backbones.
+
+The implementation of these steps are further discussed in Section
+$\ref{reduction-to-practice}$.
 
 In the presentation of this report, several tables, and graphics are used to
 make the seeing the merit of the results effortless. For all benchmarks, the
@@ -87,6 +101,9 @@ colnames(stats_mat) <- NULL
 
 ## Environment Description
 
+The results of this report were generated with the following hardware and
+software:
+
 - Hardware:
     - Apple MacBook Pro (Retina, Mid 2012)
     - Processor: 2.6 GHz Intel Core i7 (with turbo boost up to 3.3GHz)
@@ -100,27 +117,29 @@ colnames(stats_mat) <- NULL
 - Graphical Tool:
     - R[@r2015] version 3.3.1 (2016-06-21) -- (codename "Bug in Your Hair")
 
+All algorithms were written in `C++` using the `C++11` standard. These
+implementation are less intensive on the resources of the system. The
+utilization are the measured range of peak average utilization for each
+benchmark.
+
 - Resource Utilization:
-    - CPU exponential from 0% to 16%
-    - Memory 0 MB to 40 MB
+    - CPU Utilization:  5% to 15%
+    - Memory: 0.625 MB to 40 MB
 
-# Evaluation
-Nullam semper imperdiet orci, at lacinia est aliquet et. Sed justo nibh, aliquet
-et velit at, pharetra consequat velit. Nullam nec ligula sagittis, adipiscing
-nisl sed, varius massa. Mauris quam ante, aliquet a nunc et, faucibus imperdiet
-libero. Suspendisse odio tortor, bibendum vel semper sit amet, euismod ac ante.
-Nunc nec dignissim turpis, ac blandit massa. Donec auctor massa ac vestibulum
-aliquam. Fusce auctor dictum lobortis. Vivamus tortor augue, convallis quis
-augue sit amet, laoreet tristique quam. Donec id volutpat orci. Suspendisse at
-mi vel elit accumsan porta ac ut diam. Nulla ut dapibus quam.
+The tool to generate the graphics for this report was R[@r2015]. R is a
+statistical coding language, but has the benefit of a large community that has
+built several packages for developing graphics. For the purposes of this
+project, the core R libraries were the only graphical tools needed. However,
+there are several packages for network analysis built for R[@statnet2008]. All
+data that is given to R for displaying the various tables and graphs seen in
+this report are passed via CSV files (as that format is easily read by R).
 
-Sed est odio, ornare in rutrum et, dapibus in urna. Suspendisse varius massa in
-ipsum placerat, quis tristique magna consequat. Suspendisse non convallis augue.
-Quisque fermentum justo et lorem volutpat euismod. Vestibulum ante ipsum primis
-in faucibus orci luctus et ultrices posuere cubilia Curae; Morbi sagittis
-interdum justo, eu consequat nisi convallis in. Sed tincidunt risus id lacinia
-ultrices. Phasellus ac ligula sed mi mattis lacinia ac non felis. Etiam at dui
-tellus.
+Further, R is used to generate this report into Latex (and then a PDF
+thereafter). This document is written in R-Markdown[@rMarkdown2015] where the R
+code is embedded to generate plots and tables.
+
+# Reduction to Practice
+
 
 # Conclusion
 Duis nec purus sed neque porttitor tincidunt vitae quis augue. Donec porttitor
