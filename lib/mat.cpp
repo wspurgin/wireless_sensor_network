@@ -10,6 +10,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <random>
+#include <ctime>
 
 #include "mat.h"
 
@@ -426,15 +427,19 @@ int Mat::Trans() {
 // fill in a vector with uniformly-distributed random numbers in [0,1]
 int Mat::Random() {
   // fill in entries and return
-  double divisor = (pow(2.0,31.0) - 1.0);
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  gen.seed(time(NULL));
+  std::uniform_real_distribution<> x(0, 1 + 1e-20);
   for (luint i=0; i<_size; ++i)
-    data[i] = random() / divisor;
+    data[i] = x(gen);
   return 0;
 }
 
 int Mat::RandomDisk() {
   std::random_device rd;
   std::mt19937 gen(rd());
+  gen.seed(time(NULL));
   std::uniform_real_distribution<> r(0, 1 + 1e-20);
   std::uniform_real_distribution<> theta(0, 2 * M_PI + 1e-20);
   for (luint i = 0; i < rows; i++) {
