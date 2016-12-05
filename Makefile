@@ -25,6 +25,8 @@ TEST_CXXFLAGS = -g -std=c++11
 # All lib objects
 ALL = mat.o vec.o rggio.o
 
+ALL_H = LList.h point.h Stack.h Queue.h
+
 # Get current working directory
 # and specify lib directory
 
@@ -35,19 +37,20 @@ LIB_DIR = $(MAKE_DIR)lib/
 TEST_DIR := $(MAKE_DIR)tests/
 
 ALL := $(addprefix $(BIN_DIR), $(ALL))
+ALL_H := $(addprefix $(LIB_DIR), $(ALL_H))
 
 # makefile targets
-all : wsn | $(LIB_DIR)point.h
+all : wsn | $(ALL) $(ALL_H)
 
 tests : $(BIN_DIR)test_llist.out
 
 $(BIN_DIR)test_llist.out : $(TEST_DIR)test_llist.cpp $(LIB_DIR)LList.h | $(BIN_DIR)
 	$(CXX) $(TEST_CXXFLAGS) $(TEST_DIR)test_llist.cpp -o $@
 
-$(BIN_DIR)wsn_backbone.out : $(MAKE_DIR)wsn_backbone.cpp $(ALL) | $(BIN_DIR)
+$(BIN_DIR)wsn_backbone.out : $(MAKE_DIR)wsn_backbone.cpp $(ALL) $(ALL_H) | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) $(MAKE_DIR)wsn_backbone.cpp $(ALL) -o $@
 
-$(BIN_DIR)gen_rgg.out : $(MAKE_DIR)gen_rgg.cpp $(ALL) | $(BIN_DIR)
+$(BIN_DIR)gen_rgg.out : $(MAKE_DIR)gen_rgg.cpp $(ALL) $(ALL_H) | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) $(MAKE_DIR)gen_rgg.cpp $(ALL) -o $@
 
 $(BIN_DIR)rggio.o : $(LIB_DIR)rggio.h $(LIB_DIR)rggio.cpp $(BIN_DIR)mat.o | $(BIN_DIR)
