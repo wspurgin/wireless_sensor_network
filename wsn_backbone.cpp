@@ -28,7 +28,6 @@
 #include "lib/mat.h"
 #include "lib/LList.h"
 #include "lib/Stack.h"
-#include "lib/Queue.h"
 #include "lib/point.h"
 #include "lib/rggio.h"
 
@@ -253,34 +252,42 @@ int main(int argc, const char *argv[])
   // vector with pair of the combination (pair) - edge_count
   unordered_map< pair<luint, luint>, luint> backbone_by_edge_count;
   unordered_map< pair<luint, luint>, LList<point *> > backbone_max_subgraph_nodes;
+  set<luint> ids;
+
+  for(auto v : rgg)
+    ids.insert(v.id);
+
+  cout << endl << "Calculating Maximum Connected Subgraph for Backbones" << endl;
   for (auto backbone : combinations) {
     luint c, k;
     tie(c, k) = backbone;
+    cout << "Backbone: " << '(' << c << ',' << k << ") - ";
+
     backbone_by_edge_count[backbone] = 0;
+    set<luint> visited;
 
-    for (auto h_i : adjacency_list) {
-      luint node_id = h_i.first;
+    while(visited.size() != rgg.size()) {
+      luint node_id;
+      vector<luint> remaining;
+      set_difference(ids.begin(), ids.end(), visited.begin(), visited.end(),
+                        inserter(remaining, remaining.begin()));
 
-      // Only consider starting points that are in the backbone colors as
-      // starting nodes
-      if (rgg[node_id].color != c && rgg[node_id].color != k)
-        continue;
+      node_id = remaining.back();
 
-      set<luint> visited;
-      Queue<luint> node_queue;
+      set<luint> node_queue;
       LList<point *> backbone_nodes;
-      node_queue.push(node_id);
-      backbone_nodes.insert(&rgg[node_id]);
+      node_queue.insert(node_id);
 
-      // determine how many edges we can reach from this starting backbone
-      // starting node.
+      // determine how many edges we can reach from this starting node.
+      /*
+       * BFS
+       */
       luint num_edges = 0;
-      luint j = 0;
       while(node_queue.size() > 0) {
-        cout << "\r j = " << j++ << " queue size: " << node_queue.size();
 
         // get current id
-        luint curr_id = node_queue.pop();
+        luint curr_id = *node_queue.begin();
+        node_queue.erase(node_queue.begin());
         if (visited.count(curr_id) == 1) // we've already visited this node
           continue;
 
@@ -294,7 +301,7 @@ int main(int argc, const char *argv[])
         for (auto child = children.begin(); child != children.end(); ++child) {
           // if we haven't visitied the node
           if (visited.count((*child)->id) == 0)
-            node_queue.push((*child)->id);
+            node_queue.insert((*child)->id);
         }
 
         // Finally, mark the vertex as visited
@@ -310,6 +317,7 @@ int main(int argc, const char *argv[])
     // Since each edge is recorded twice in the adjacency list, we should divide
     // by two.
     backbone_by_edge_count[backbone] /= 2;
+    cout << backbone_by_edge_count[backbone] << endl;
   }
 
   // Same as with above, we'll normalize the total edge count to the count of
@@ -326,6 +334,8 @@ int main(int argc, const char *argv[])
       << (double) backbone_by_edge_count[backbone] / (double) total_edge_count * 100
       << '%' << endl;
   }
+
+  // Update point data with Backbone information
 
   // Write out smallest last ordering, and coloring
   stringstream base_file_s, graph_output_file_s, degree_when_deleted_s;
