@@ -1,0 +1,268 @@
+\documentclass[]{elsarticle} %review=doublespace preprint=single 5p=2 column
+%%% Begin My package additions %%%%%%%%%%%%%%%%%%%
+\usepackage[hyphens]{url}
+\usepackage{lineno} % add
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+\bibliographystyle{elsarticle-harv}
+\biboptions{sort&compress} % For natbib
+\usepackage{graphicx}
+\usepackage{booktabs} % book-quality tables
+%% Redefines the elsarticle footer
+%\makeatletter
+%\def\ps@pprintTitle{%
+% \let\@oddhead\@empty
+% \let\@evenhead\@empty
+% \def\@oddfoot{\it \hfill\today}%
+% \let\@evenfoot\@oddfoot}
+%\makeatother
+
+% A modified page layout
+\textwidth 6.75in
+\oddsidemargin -0.15in
+\evensidemargin -0.15in
+\textheight 9in
+\topmargin -0.5in
+%%%%%%%%%%%%%%%% end my additions to header
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \usepackage{fontspec}
+  \ifxetex
+    \usepackage{xltxtra,xunicode}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Constructing Bipartite Backbones in Wireless Sensory Networks},
+            colorlinks=true,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+% Pandoc toggle for numbering sections (defaults to be off)
+\setcounter{secnumdepth}{0}
+% Pandoc header
+
+
+\usepackage[nomarkers]{endfloat}
+
+\begin{document}
+\begin{frontmatter}
+
+  \title{Constructing Bipartite Backbones in Wireless Sensory Networks}
+    \author[Southern Methodist University - Bobby B. Lyle School of Engineering]{Will Spurgin}
+   \ead{wspurgin@smu.edu} 
+  
+    
+  \begin{abstract}
+  TODO FILL IN ABSTRACT
+  \end{abstract}
+  
+ \end{frontmatter}
+
+\section{Executive Summary}\label{executive-summary}
+
+\subsection{Introduction}\label{introduction}
+
+Imagine a scenario in which you are part of a team monitoring the
+volcano Mount Pinatubo for surface temperature and seismic activity.
+Further, you are given a multitude of low cost short-range wireless
+sensors to place around an area of the volcano to take these
+measurements. Since Mt. Pinatubo is somewhat hard to reach, you decide
+to drop these sensors from a helicopter. After dropping your sensors
+over the area in a uniformly random fashion, you now need to read all
+the data from these sensors. However, since they are short-range
+wireless sensors, you would have to be sufficiently close to a sensor to
+read its data. However, since all the nodes are wireless, they can
+communicate their data to each other. Ideally, you would rather go to
+one or relatively few nodes to retrieve all the data. The question
+becomes: to which node(s) do you go?
+
+This fictional scenario is the problem setting to which this report
+provides solution discussion, reduction of those solution to practice,
+and a variety of benchmark measurements. Formally, this report examines
+the construction of backbones of communication in Wireless Sensor
+Networks (WSNs) modeled as Random Geometric Graphs (RGGs). The results
+presented in this report indicate that, generally, RGGs (and thus WSNs)
+with uniformly distributed nodes can achieve near \textbf{100\%}
+coverage from a bipartite backbone using the methods described in this
+report. The use of the methods presented in this report are strongly
+recommended for any application involving WSNs or scenarios that can be
+modeled as RGGs. Study of this work is not new{[}1,2{]}, and much of
+that work corroborates the findings of this report.
+
+In the presentation of this report, several tables, and graphics are
+used to make the seeing the merit of the results effortless. For all
+benchmarks, the following plots are included: A plot of the RGG (with
+edges), a plot of the node with lowest degree, a plot of the node with
+highest degree, a plot of the color classes frequency, a plot of the
+degree distributions, a plot of the degree when deleted versus original
+degree of the Smallest Last ordering algorithm, and lastly the plot of
+the two major backbones of an RGG. Additionally, a table is provided
+with summary information about the RGG (e.g.~number of edges, vertices,
+desired average degree, actual average degree, etc.). An abbreviated
+table of results is given below in Table \(\ref{tab:abb_res}\).
+
+\begin{table}
+
+\caption{\label{tab:abb_res}Abbreviated Results}
+\centering
+\begin{tabular}[t]{l|l}
+\hline
+Number of Nodes & 29464\\
+\hline
+Desired Avg. Degree & 32\\
+\hline
+Shape & plane\\
+\hline
+Actual Avg. Degree & 29.464\\
+\hline
+Radius & 0.100925\\
+\hline
+Number of Edges & 29464\\
+\hline
+Max Degree & 48\\
+\hline
+Min Degree & 7\\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Environment Description}\label{environment-description}
+
+\begin{itemize}
+\tightlist
+\item
+  Hardware:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Apple MacBook Pro (Retina, Mid 2012)
+  \item
+    Processor: 2.6 GHz Intel Core i7 (with turbo boost up to 3.3GHz)
+  \item
+    Memory: 8 GB 1600 MHz DDR3
+  \item
+    Intel HD Graphics 4000 1536 MB
+  \item
+    Storage: 500.28 GB Solid State Drive, SATA Connection.
+  \end{itemize}
+\item
+  Language: C++
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Compilers:
+  \item
+    GNU GCC 5.2.0 (Homebrew gcc 5.2.0 build)
+  \item
+    Clang 8, Apple LLVM version 8.0.0 (clang-800.0.38)
+  \end{itemize}
+\item
+  Graphical Tool:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    R{[}3{]} version 3.3.1 (2016-06-21) -- (codename ``Bug in Your
+    Hair'')
+  \end{itemize}
+\item
+  Resource Utilization:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    CPU exponential from 0\% to 16\%
+  \item
+    Memory 0 MB to 40 MB
+  \end{itemize}
+\end{itemize}
+
+\section{Evaluation}\label{evaluation}
+
+Nullam semper imperdiet orci, at lacinia est aliquet et. Sed justo nibh,
+aliquet et velit at, pharetra consequat velit. Nullam nec ligula
+sagittis, adipiscing nisl sed, varius massa. Mauris quam ante, aliquet a
+nunc et, faucibus imperdiet libero. Suspendisse odio tortor, bibendum
+vel semper sit amet, euismod ac ante. Nunc nec dignissim turpis, ac
+blandit massa. Donec auctor massa ac vestibulum aliquam. Fusce auctor
+dictum lobortis. Vivamus tortor augue, convallis quis augue sit amet,
+laoreet tristique quam. Donec id volutpat orci. Suspendisse at mi vel
+elit accumsan porta ac ut diam. Nulla ut dapibus quam.
+
+Sed est odio, ornare in rutrum et, dapibus in urna. Suspendisse varius
+massa in ipsum placerat, quis tristique magna consequat. Suspendisse non
+convallis augue. Quisque fermentum justo et lorem volutpat euismod.
+Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere
+cubilia Curae; Morbi sagittis interdum justo, eu consequat nisi
+convallis in. Sed tincidunt risus id lacinia ultrices. Phasellus ac
+ligula sed mi mattis lacinia ac non felis. Etiam at dui tellus.
+
+\section{Conclusion}\label{conclusion}
+
+Duis nec purus sed neque porttitor tincidunt vitae quis augue. Donec
+porttitor aliquam ante, nec convallis nisl ornare eu. Morbi ut purus et
+justo commodo dignissim et nec nisl. Donec imperdiet tellus dolor, vel
+dignissim risus venenatis eu. Aliquam tempor imperdiet massa, nec
+fermentum tellus sollicitudin vulputate. Integer posuere porttitor
+pharetra. Praesent vehicula elementum diam a suscipit. Morbi viverra
+velit eget placerat pellentesque. Nunc congue augue non nisi ultrices
+tempor.
+
+\section*{References}\label{references}
+\addcontentsline{toc}{section}{References}
+
+\hypertarget{refs}{}
+\hypertarget{ref-mahjoub2010}{}
+{[}1{]} Mahjoub D, Matula DW. Building (1-\(\epsilon\)) dominating sets
+partition as backbones in wireless sensor networks using distributed
+graph coloring. In: Rajaraman R, Moscibroda T, Dunkels A, Scaglione A,
+editors. Distributed computing in sensor systems: 6th ieee international
+conference, dcoss 2010, santa barbara, ca, usa, june 21-23, 2010.
+proceedings, Berlin, Heidelberg: Springer Berlin Heidelberg; 2010, pp.
+144--57.
+doi:\href{https://doi.org/10.1007/978-3-642-13651-1_11}{10.1007/978-3-642-13651-1\_11}.
+
+\hypertarget{ref-mahjoub2012}{}
+{[}2{]} Mahjoub D, Matula DW. Constructing efficient rotating backbones
+in wireless sensor networks using graph coloring. Computer
+Communications 2012;35:1086--97.
+doi:\href{https://doi.org/http://dx.doi.org/10.1016/j.comcom.2012.02.013}{http://dx.doi.org/10.1016/j.comcom.2012.02.013}.
+
+\hypertarget{ref-r2015}{}
+{[}3{]} Team RC. R: A language and environment for statistical
+computing. Vienna, Austria: R Foundation for Statistical Computing;
+2015.
+
+\end{document}
+
+

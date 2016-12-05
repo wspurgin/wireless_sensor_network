@@ -2,15 +2,18 @@
 # Manuel Moraga | mmoraga@kth.se
 
 # List files to be made
-PDFS := $(patsubst %.md,%.pdf,$(wildcard *.md))
+PDFS := $(patsubst %.Rmd,%.pdf,$(wildcard *.Rmd))
 
 all : $(PDFS)
 
 # Accepts PDF target with markdown syntax, makes them using pandoc
-%.pdf : %.md
-		pandoc $< -o $@ --template=shortpaper.latex --filter pandoc-citeproc --csl=acm-sig-proceedings.csl
+%.pdf : %.Rmd
+		Rscript -e 'library(rmarkdown); render("$^")'
 
 clean :
 		rm $(PDFS)
+
+open : report.pdf
+	open $^
 
 rebuild: clean all
