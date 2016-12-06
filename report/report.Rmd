@@ -47,6 +47,7 @@ modeled as RGGs. Study of this work is not new[@mahjoub2010; @mahjoub2012], and
 much of that work corroborates the findings of this report. The process for
 choosing for the backbones in a WSN are straight forward:
 
+
 1. For a graph $G$ (our RGG modeling a WSN), produce a Smallest Last
    Ordering[@matula1983] $S_{G}$.
 2. For each vertex $v_j$ in $S_{G}$ color the vertex with the lowest available
@@ -75,29 +76,61 @@ library(readr)
 library(dplyr)
 
 # Read in Generation Stats Data
-stat_files <- dir("../") %>% grep("*_gen_stats.csv", ., value=TRUE) %>%
+gen_stat_files <- dir("../") %>% grep("*_gen_stats.csv", ., value=TRUE) %>%
     paste("..", ., sep="/")
-num_stat_files <- length(stat_files)
+backbone_stat_files <- dir("../") %>% grep("*_backbone_stats.csv", ., value=TRUE) %>%
+    paste("..", ., sep="/")
+num_stat_files <- length(gen_stat_files)
 if (num_stat_files > 0) {
-  stats_df <- read_csv(stat_files[1])
+  gen_stats_df <- read_csv(gen_stat_files[1])
   if (num_stat_files > 1) {
     for (i in 2:num_stat_files) {
-      stats_df <- rbind(stats_df, read_csv(stat_files[i]))
+      gen_stats_df <- rbind(gen_stats_df, read_csv(gen_stat_files[i]))
     }
   }
 }
 
+num_bb_stat_files <- length(backbone_stat_files)
+if (num_bb_stat_files > 0) {
+  bb_stats_df <- read_csv(backbone_stat_files[1])
+  if (num_bb_stat_files > 1) {
+    for (i in 2:num_bb_stat_files) {
+      bb_stats_df <- rbind(bb_stats_df, read_csv(backbone_stat_files[i]))
+    }
+  }
+}
+
+stats_df <- cbind(gen_stats_df, bb_stats_df)
+stats_df$radius <- format(round(stats_df$radius,
+                                               digits = 3), nsmall = 1)
+stats_df$actual_average_degree <- format(round(stats_df$actual_average_degree,
+                                               digits = 2), nsmall = 1)
+stats_df$primary_backbone_coverage <-  paste(format(round(stats_df$primary_backbone_coverage * 100, digits = 2), nsmall = 1), "%", sep = "")
+
+some_stats_df <- stats_df %>% select(one_of(colnames(gen_stats_df)),
+                                     primary_backbone_coverage)
+
 # Output data as a row table (since we have more vertical room).
-stats_mat <- t(as.matrix(stats_df))
-rownames(stats_mat) <- c("Number of Nodes", "Desired Avg. Degree", "Shape",
+some_stats_mat <- t(as.matrix(some_stats_df))
+rownames(some_stats_mat) <- c("Number of Nodes", "Desired Avg. Degree", "Shape",
                        "Actual Avg. Degree", "Radius", "Number of Edges",
-                       "Max Degree", "Min Degree")
-colnames(stats_mat) <- NULL
+                       "Max Degree", "Min Degree", "Coverage")
+colnames(some_stats_mat) <- NULL
 ```
 
 ```{r abb_res, echo=FALSE, results='asis'}
-  kable(stats_mat, caption="Abbreviated Results", format = "latex", align="c")
+  kable(some_stats_mat, caption="Abbreviated Results", format = "latex", align="c")
 ```
+
+As will be discussed further in Section $\ref{reduction-to-practice}$, the
+algorithms used in this report are linear in the number of vertices and edges
+${{\cal O}}(|V| + |E|)$[@matula1983; @mahjoub2010]. The implementations
+presented in these reports make a few speed gains and memory reductions by using
+efficient data structures. Figure $\ref{fig:linear_runtimes}$ shows the linear
+runtime of the two phases of the project: RGG Generation and Bipartite Backbone
+Construction (and Selection).
+
+![Linear Runtimes\label{fig:linear_runtimes}](./figures/linear_runtimes.png)
 
 ## Environment Description
 
@@ -140,6 +173,35 @@ code is embedded to generate plots and tables.
 
 # Reduction to Practice
 
+In this section, the algorithms and implementations of those algorithms used in
+this report are discussed in detail. To begin, the data structures need to model
+the simulated data in this report as well as their relationships is presented.
+Additionally, certain data structures are mentioned that enhance the algorithms
+real runtime (complexity remains ${{\cal O}}(|V| + |E|)$). Thereafter, Section
+$\ref{algorithm-description}$ describes the smallest last ordering
+algorithm[@matula1983] and greedy graph coloring algorithm implemented in this
+work. The subsequent section substantiates the linear runtime of the smallest
+last ordering and coloring algorithm implementations. In Section
+$\ref{walkthrough-and-verification}$ a full walkthrough from generation to
+bipartite backbone selection is given. Lastly, a discussion of the effectiveness
+of these algorithms is given in Section $\ref{algorithm-effectiveness}$.
+
+## Data Structures
+
+A graph is simple a set of **vertices** and a set of relations between those
+vertices called **edges**. In our scenario, each vertex has geometric data as
+well ($x$ and $y$ coordinates). This report took the simplest approach when
+modeling
+
+## Algorithm Description
+
+## Algorithm Engineering
+
+## Walkthrough and Verification
+
+## Algorithm Effectiveness
+
+# Simulated Benchmark Results
 
 # Conclusion
 Duis nec purus sed neque porttitor tincidunt vitae quis augue. Donec porttitor
