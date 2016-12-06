@@ -482,7 +482,7 @@ int main(int argc, const char *argv[])
   auto secondary_backbone = *(ordered_backbones.begin() + 1);
 
   fout.open(stats_output_file, ios_base::out | ios_base::trunc);
-  fout << "terminal_clique_size,max_color_size,secondary_backbone_vertices,secondary_backbone_edges,secondary_backbone_coverage,secondary_backbone_vertices,secondary_backbone_edges,secondary_backbone_coverage" << endl;
+  fout << "terminal_clique_size,max_color_size,primary_backbone_vertices,primary_backbone_edges,primary_backbone_coverage,secondary_backbone_vertices,secondary_backbone_edges,secondary_backbone_coverage" << endl;
   luint term_cliq = 0;
   for (auto pair_degree : degree_when_deleted)
     term_cliq = pair_degree.first > term_cliq ? pair_degree.first : term_cliq;
