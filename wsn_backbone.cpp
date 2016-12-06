@@ -441,7 +441,25 @@ int main(int argc, const char *argv[])
     auto backbone = *(ordered_backbones.begin() + i);
     set<point *> backbone_nodes = backbone_max_subgraph_nodes[backbone];
     for (auto p : backbone_nodes)
+      if (!p->hasBackbone()) {
         p->backbone = i+1;
+      }
+  }
+
+  // update primary and secondary backbone adjacencies
+  for (luint i = 0; i < num_classified_backbones; ++i) {
+    auto backbone = *(ordered_backbones.begin() + i);
+    set<point *> backbone_nodes = backbone_max_subgraph_nodes[backbone];
+    set_adj_lsit adj_list;
+    for (auto p : backbone_nodes) {
+      LList<point *> backbone_edges;
+      for (auto v : adjacency_list[p->id])
+          if (backbone_nodes.count(v) == 1)
+            backbone_edges.insert(v);
+      adj_list[p->id] = backbone_edges;
+
+    }
+    backbone_adj_lists[backbone] = adj_list;
   }
 
   // Write out smallest last ordering, and coloring
@@ -452,7 +470,7 @@ int main(int argc, const char *argv[])
   degree_when_deleted_s << base_file_s.str() << "_degree_when_deleted.csv";
   string stats_output_file = base_file_s.str() + "_backbone_stats.csv";
   string primary_backbone_output_file = base_file_s.str() + "_pri_bb_adj.csv";
-  string secondary_backbone_output_file = base_file_s.str() + "_sec_bb_adj.csv";
+  string adj_output_file = base_file_s.str() + "_adj.csv";
 
   fstream fout;
   fout.open(graph_output_file_s.str().c_str(), ios_base::out | ios_base::trunc);
@@ -509,15 +527,16 @@ int main(int argc, const char *argv[])
 
   cout << primary_backbone_output_file << " written out." << endl;
 
-  fout.open(secondary_backbone_output_file, ios_base::out | ios_base::trunc);
-  for (auto node_adj_pair : backbone_adj_lists[secondary_backbone]) {
+  fout.open(adj_output_file, ios_base::out | ios_base::trunc);
+  fout << "p_id,c_id" << endl;
+  for (auto node_adj_pair : adjacency_list) {
     auto p_id = node_adj_pair.first;
     for (auto child : node_adj_pair.second)
       fout << p_id << ',' << child->id << endl;
   }
   fout.close();
 
-  cout << secondary_backbone_output_file << " written out." << endl;
+  cout << adj_output_file << " written out." << endl;
 
   return 0;
 }
