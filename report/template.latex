@@ -16,8 +16,12 @@
 \usetikzlibrary{positioning}
 \usepackage{mathtools}
 \usepackage{caption}
+\usepackage{fancyvrb}
 \usepackage[english]{babel}
 \usepackage[english]{isodate}
+\usepackage[utf8]{inputenc}
+\DeclareUnicodeCharacter{3B4}{\delta}
+\DeclareUnicodeCharacter{1D6C5}{\delta}
 \cleanlookdateon
 % \usepackage{babelbib} 
 \exhyphenpenalty=1000
@@ -45,7 +49,6 @@
 \usepackage{fixltx2e} % provides \textsubscript
 \ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
   \usepackage[$if(fontenc)$$fontenc$$else$T1$endif$]{fontenc}
-  \usepackage[utf8]{inputenc}
 $if(euro)$
   \usepackage{eurosym}
 $endif$
@@ -141,7 +144,7 @@ $if(highlighting-macros)$
 $highlighting-macros$
 $endif$
 $if(verbatim-in-note)$
-\usepackage{fancyvrb}
+% \usepackage{fancyvrb}
 \VerbatimFootnotes % allows verbatim text in footnotes
 $endif$
 $if(tables)$

@@ -1,53 +1,55 @@
-library(readr)
-library(dplyr)
+read_graph <- function(shape, nodes, average, dir="..") {
+  rgg_graph_file <- paste(shape, nodes, average, "graph.csv", sep="_")
+  rgg_graph_file <- paste(dir, rgg_graph_file, sep="/")
 
-argv <- commandArgs(TRUE)
-print(argv)
+  adj_file <- paste(shape, nodes, average, "adj.csv", sep="_")
+  adj_file <- paste(dir, adj_file, sep="/")
 
-if (length(argv) < 1) {
-  warning("At least one file must be listed when invoking this script")
+  rgg <- read.csv(rgg_graph_file)
+  rgg <- rgg[order(rgg$id),]
+  adj <- read.csv(adj_file)
+  return(list(rgg=rgg, adj=adj))
 }
 
-rgg_graph_file <- argv[1]
-rgg_degree_file <- argv[2]
+plot_graph <- function (rgg, adj) {
+  lim <- c(0,1)
+  plot(rgg[,c("x","y")],
+       col = ifelse(!is.na(rgg$degree) & rgg$degree == min(rgg$degree), "red", "black"),
+       pch = ifelse(!is.na(rgg$degree) & rgg$degree == min(rgg$degree), 16, 1),
+       ylim = lim,
+       xlim = lim)
+  arrows(x0 = as.double(as.matrix(rgg[adj$p_id+1, "x"])), y0 = as.double(as.matrix(rgg[adj$p_id+1, "y"])),
+         x1 = as.double(as.matrix(rgg[adj$c_id+1, "x"])), y1 = as.double(as.matrix(rgg[adj$c_id+1, "y"])),
+         length = 0)
+}
 
+cut_min <- function(rgg, adj) {
+  row_cut <- which(rgg$degree == min(rgg$degree))
+  if (length(row_cut) > 1) {
+    row_cut <- row_cut[1]
+  }
+  node <- rgg[row_cut,]
+  rgg <- rgg[-row_cut,]
 
-rgg <- read_csv(rgg_graph_file, col_types = cols(backbone = col_integer()))
-color_tally <- rgg %>% group_by(color) %>% tally(sort = TRUE)
-# cell_size <- if_else(rgg$color == color_tally$color[1:2], 0.5, 0.25)
+  p_cut <- which(adj$p_id == node$id)
+  c_cut <- which(adj$c_id == node$id)
+  adj <- adj[-p_cut | c_cut,]
 
-image_name <- paste(gsub("\\.csv", "", rgg_graph_file), "png", sep = ".")
-png(image_name, width=4, height=4, units="in", res=300)
-orig <- par(pty="s", mar=c(4,4,1,1))
+  return(list(rgg=rgg, adj=adj))
+}
 
-dev <- rgg[if_else(rgg$color == color_tally$color[1:2], TRUE, FALSE),] %>%
-  select(x, y) %>%
-  plot(col = c(1,2), cex=0.5)
+res <- read_graph("plane", 20, 10, "walkthru")
+rgg <- res$rgg
+adj <- res$adj
 
-dev.off() #only 129kb in size
+plot_graph(rgg, adj)
+res <- cut_min(rgg, adj)
+rgg <- res$rgg
+adj <- res$adj
 
-
-# TODO plot edges
-#
-
-# TODO Plot backbones, other points very small
-#
-par(orig)
-
-degree_when_deleted <- read_csv(rgg_degree_file)
-degree_max = max(degree_when_deleted$original_degree)
-y_axis_max = degree_max + degree_max / 10
-
-image_name <- paste(gsub("\\.csv", "", rgg_degree_file), "png", sep = ".")
-png(image_name)
-
-dev = plot(degree_when_deleted$iteration, degree_when_deleted$degree_when_deleted,
-     col = "blue", type="l", ylim=c(0, y_axis_max), ylab = "Degree",
-     xlab = "Iteration")
-lines(degree_when_deleted$iteration, degree_when_deleted$original_degree,
-      col = "red",
-      lty=2)
-legend(0, y_axis_max, legend = c("Degree When Deleted", "Original Degree"),
-       col = c("blue", "red"), lty=c(1,2))
-
-dev.off() #only 129kb in size
+for (i in 1:9) {
+    res <- cut_min(rgg, adj)
+    rgg <- res$rgg
+    adj <- res$adj
+}
+plot_graph(rgg, adj)
