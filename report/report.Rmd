@@ -82,7 +82,7 @@ if (num_stat_files > 0) {
   stats_df <- read_csv(stat_files[1])
   if (num_stat_files > 1) {
     for (i in 2:num_stat_files) {
-      rbind(stats_df, read_csv(stat_files[i]))
+      stats_df <- rbind(stats_df, read_csv(stat_files[i]))
     }
   }
 }
@@ -96,7 +96,7 @@ colnames(stats_mat) <- NULL
 ```
 
 ```{r abb_res, echo=FALSE, results='asis'}
-  kable(stats_mat, caption="Abbreviated Results", format = "latex", align="l")
+  kable(stats_mat, caption="Abbreviated Results", format = "latex", align="c")
 ```
 
 ## Environment Description

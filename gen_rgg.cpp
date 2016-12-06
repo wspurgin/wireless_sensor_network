@@ -204,7 +204,7 @@ int main(int argc, const char *argv[])
 
   fout.open(stats_output_file, ios_base::out | ios_base::trunc);
   fout << "nodes,desired_avg_degree,shape,actual_average_degree,radius,num_edges,max_degree,min_degree" << endl;
-  fout <<  num_edges << ',' << avg_degree << ',' << geo_shape << ','
+  fout <<  num_nodes << ',' << avg_degree << ',' << geo_shape << ','
     << actual_avg_degree << ',' << radius << ',' << num_edges
     << ',' << max_degree << ',' << min_degree
     << endl;
