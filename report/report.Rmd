@@ -16,6 +16,9 @@ output:
     fig_caption: yes
     number_sections: yes
     template: template.latex
+    pandoc_args: [
+      "--latex-engine-opt", "-shell-escape"
+    ]
 ---
 
 # Executive Summary
@@ -82,20 +85,20 @@ backbone_stat_files <- dir("../") %>% grep("*_backbone_stats.csv", ., value=TRUE
     paste("..", ., sep="/")
 num_stat_files <- length(gen_stat_files)
 if (num_stat_files > 0) {
-  gen_stats_df <- read_csv(gen_stat_files[1])
+  gen_stats_df <- read.csv(gen_stat_files[1])
   if (num_stat_files > 1) {
     for (i in 2:num_stat_files) {
-      gen_stats_df <- rbind(gen_stats_df, read_csv(gen_stat_files[i]))
+      gen_stats_df <- rbind(gen_stats_df, read.csv(gen_stat_files[i]))
     }
   }
 }
 
 num_bb_stat_files <- length(backbone_stat_files)
 if (num_bb_stat_files > 0) {
-  bb_stats_df <- read_csv(backbone_stat_files[1])
+  bb_stats_df <- read.csv(backbone_stat_files[1])
   if (num_bb_stat_files > 1) {
     for (i in 2:num_bb_stat_files) {
-      bb_stats_df <- rbind(bb_stats_df, read_csv(backbone_stat_files[i]))
+      bb_stats_df <- rbind(bb_stats_df, read.csv(backbone_stat_files[i]))
     }
   }
 }
@@ -106,17 +109,101 @@ stats_df$radius <- format(round(stats_df$radius,
 stats_df$actual_average_degree <- format(round(stats_df$actual_average_degree,
                                                digits = 2), nsmall = 1)
 stats_df$primary_backbone_coverage <-  paste(format(round(stats_df$primary_backbone_coverage * 100, digits = 2), nsmall = 1), "%", sep = "")
+stats_df$secondary_backbone_coverage <-  paste(format(round(stats_df$secondary_backbone_coverage * 100, digits = 2), nsmall = 1), "%", sep = "")
 
 some_stats_df <- stats_df %>% select(one_of(colnames(gen_stats_df)),
                                      primary_backbone_coverage)
 
 # Output data as a row table (since we have more vertical room).
+stats_mat <- t(as.matrix(stats_df))
+rownames(stats_mat) <- c("Number of Nodes", "Desired Avg. Degree", "Shape",
+                       "Actual Avg. Degree", "Radius", "Number of Edges",
+                       "Max Degree", "Min Degree", "Terminal Clique",
+                       "Max Color Size", "Primary Backbone Vertices",
+                       "Primary Backbone Edges", "Primary Coverage",
+                       "Secondary Backbone Vertices",
+                       "Secondary Backbone Edges", "Secondary Coverage")
+colnames(stats_mat) <- NULL
+
 some_stats_mat <- t(as.matrix(some_stats_df))
 rownames(some_stats_mat) <- c("Number of Nodes", "Desired Avg. Degree", "Shape",
                        "Actual Avg. Degree", "Radius", "Number of Edges",
                        "Max Degree", "Min Degree", "Coverage")
 colnames(some_stats_mat) <- NULL
 ```
+
+```{r include=FALSE}
+plot_rgg <- function(shape, nodes, average, dir="..") {
+  rgg_graph_file <- paste(shape, nodes, average, "graph.csv", sep="_")
+  rgg_graph_file <- paste(dir, rgg_graph_file, sep="/")
+
+  sec_bb_adjs <- paste(shape, nodes, average, "sec_bb_adj.csv",
+                          sep="_")
+  sec_bb_adjs <- paste(dir, sec_bb_adjs, sep="/")
+
+
+  log <- capture.output({
+    rgg <- read.csv(rgg_graph_file)
+  })
+
+  plot(rgg[, c("x","y")], col = rgg$color,
+       main = paste(shape, nodes, "Nodes", "-", "Avg. Degree", average),
+       cex=min(1, 1000/nodes))
+}
+
+plot_degree_dist <- function(shape, nodes, average, dir="..") {
+  rgg_degree_file <- paste(shape, nodes, average, "degree_when_deleted.csv",
+                          sep="_")
+  rgg_degree_file <- paste(dir, rgg_degree_file, sep="/")
+
+  log <- capture.output({
+    degree_when_deleted <- read.csv(rgg_degree_file)
+  })
+  degree_max = max(degree_when_deleted$original_degree)
+  y_axis_max = degree_max + degree_max / 10
+
+  plot(degree_when_deleted$iteration, degree_when_deleted$degree_when_deleted,
+             col = "blue", type="l", ylim=c(0, y_axis_max), ylab = "Degree",
+             xlab = "Iteration",
+             main = paste(shape, nodes, "Nodes", "-", "Avg. Degree", average))
+  lines(degree_when_deleted$iteration, degree_when_deleted$original_degree,
+        col = "red",
+        lty=2)
+  legend(0, y_axis_max, legend = c("Degree When Deleted", "Original Degree"),
+         col = c("blue", "red"), lty=c(1,2))
+}
+
+plot_primary_backone <- function(shape, nodes, average, dir="..") {
+  rgg_graph_file <- paste(shape, nodes, average, "graph.csv", sep="_")
+  rgg_graph_file <- paste(dir, rgg_graph_file, sep="/")
+
+  pri_bb_adjs <- paste(shape, nodes, average, "pri_bb_adj.csv",
+                       sep="_")
+  pri_bb_adjs <- paste(dir, pri_bb_adjs, sep="/")
+
+  log <- capture.output({
+    rgg <- read.csv(rgg_graph_file)
+    rgg <- rgg[order(rgg$id),]
+    adj <- read.csv(pri_bb_adjs)
+  })
+
+  if (shape == "plane"){
+    lim <- c(0,1)
+  } else {
+    lim <- c(-1,1)
+  }
+  cex <- ifelse(!is.na(rgg$backbone) & rgg$backbone == 1, min(10000/nodes, 1), min(1000/nodes, 0.5))
+  plot(rgg[,c("x","y")],
+       col = ifelse(!is.na(rgg$backbone) & rgg$backbone == 1, rgg$color, rgb(1, green = 0, blue = 0.3, alpha=0.4)),
+       pch = ifelse(!is.na(rgg$backbone) & rgg$backbone == 1, 16, 1),
+       main = paste("Primary Backbone -", shape, nodes, "Nodes", "-", "Avg. Degree", average),
+       cex = cex,
+       ylim = lim,
+       xlim = lim)
+    arrows(x0 = as.double(as.matrix(rgg[adj$p_id+1, "x"])), y0 = as.double(as.matrix(rgg[adj$p_id+1, "y"])),
+           x1 = as.double(as.matrix(rgg[adj$c_id+1, "x"])), y1 = as.double(as.matrix(rgg[adj$c_id+1, "y"])),
+           length = 0)
+}
 
 ```{r abb_res, echo=FALSE, results='asis'}
   kable(some_stats_mat, caption="Abbreviated Results", format = "latex", align="c")
@@ -191,26 +278,462 @@ of these algorithms is given in Section $\ref{algorithm-effectiveness}$.
 A graph is simple a set of **vertices** and a set of relations between those
 vertices called **edges**. In our scenario, each vertex has geometric data as
 well ($x$ and $y$ coordinates). This report took the simplest approach when
-modeling
+modeling the RGGs. Every vertex was an object (`C++` `struct`) with a unique
+incrementing identifier, the x-y coordinates, and various data points filled in
+by the application (e.g. color, backbone assignment, etc.). These points are
+stored in an array (`C++` `vector`) at their identifier location (e.g. the node
+$0$ is stored at the $0$ index of the array). The **edges** of the graph are
+then stored in a Hash table (`C++` `unordered_map`) with the vertex identifiers
+as keys pointing to a doubly linked list of pointers to vertices. Most other
+data structures use a variety of Hash tables and collections of pointers to
+vertices. When the collection is often searched (e.g. in breadth first searches)
+a Red-Black Tree [@cormen2009] is used (`C++` `set`). Otherwise, the doubly
+linked list implementation is used for ${{\bf \Theta}}(1)$ inserts and
+deletions at the beginning or end. The only other notable data structure, is the
+one used during the generation of the RGGs. The data begins as a uniformly
+random distribution of points on either a unit disk or unit square. These are
+the modeled "sensors" inside the WSN. Given a desired average degree, a radius
+of adjacency is calculated. This radius of adjacency is used to determine what
+points are adjacent inside the RGG. A node $v_j$ is adjacent to another node
+$v_i$ if the Euclidean distance of the difference between the x-Y coordinate
+vector is less than $R$: the radius of adjacency. Since the process both for
+generating the RAG and determining its adjacency list is fairly mathematical, a
+special data structure was used that represents a matrix (in Appendix see
+`mat.h` and `mat.cpp`). This data structure has been optimized for speed over
+several years. It represents data as rows and columns, but internally maps the
+data as one sequential allocation of memory. It makes vector-wise mathematical
+operations both very fast, and very easy for a programmer^[Note that this is my
+personal opinion, as I, with the help of Dr. Daniel Reynolds of Math department
+at Southern Methodist University, built this C++ data structure. This work
+does not provide rigorous proofs of the optimization of this data structure.].
 
 ## Algorithm Description
 
+The smallest last ordering, as described in [@matula1983] is quite simple for a
+given graph $G$:
+
+1. Initialize: $H \leftarrow G$, $S_G \leftarrow \{\}$
+2. Find $v_j$ in $H$ such that the degree of $v_j$ is the minimum degree
+   $\delta$ in $H$.
+3. Cut $v_j$ from $H$, $H \leftarrow H - v_j$, $S_G[] \leftarrow v_j$
+4. If $H$ is not empty, go to step 2, else reverse $S_G$ and you have the
+   smallest last ordering.
+
+The smallest last ordering is clearly a linear time algorithm in the number of
+vertices and edges if certain operations can be constant time. Mainly, the
+discovery of $v_j$ in $H$. If this is constant time, then each node is visited
+once, and the cutting of $v_j$ from $H$ (given the data structures mentioned
+above) is at most linear in the number of vertices and edges of $v_j$.
+
+Once a smallest last ordering of $G$ is obtained, we color the nodes by
+precedence in the smallest last degree ordering. The simplest coloring algorithm
+is called the Greedy Coloring[@mahjoub2010; @cormen2009]. Given an ordering of
+vertices (any ordering, even random), a vertex is assigned the lowest color
+class possible that is **not** its neighbors' color. This algorithm has a
+natural tendency to produce a coloring with lower color classes having the
+highest frequency. Below the algorithm is summarized in step form:
+
+1. Given vertex ordering $O_G$
+2. For each $v_i$ in $O_G$
+3. Select $c = \min({{ \rm color }})$ not in ${{ \rm colors}}(N(v_i))$
+4. Assign ${{\rm color}}(v_i) \leftarrow c$
+
+This algorithm is also clearly of ${{ \cal O }}(|V| + |E|)$ complexity. Each
+node is colored after traversing all of its neighboring edges to learn the
+colors of its neighbors.
+
+From a coloring of $G$ we can determine the bipartite backbones. Others have
+shown that if $\delta = \min(d(v_i|G))$ (that is if $\delta$ is the minimum
+degree in $G$), the optimal^["optimal" is a rather opinionated concept in this
+case. For the work cited, it was the most redundant (fault tolerant) backbone
+with the highest vertex coverage (i.e. backbone with highest minimum cut with
+the highest vertex coverage with that minimum cut).] backbone can be selected
+from the $\binom{2}{\delta}$ combinations of $\delta$ largest independent sets
+within $G$[@mahjoub2010; @mahjoub2012]. For this report, it sufficed to pick
+only the 4 largest independent sets to find the 2 backbones with the highest
+vertex coverage. The largest independent sets are simply the largest color
+classes. Determining the frequency of each color class is a linear time
+operation in the number of edges. To construct a Bipartite backbone, we take the
+$\binom{2}{4} = 6$ combinations of the 4 largest color classes and form
+partitions of the nodes with those color classes. Additionally, we form a
+subgraph adjacency list of only the nodes within this backbone partition. With
+this, we can determine the maximal connected subgraph of this bipartite
+graph (i.e. the largest component) by performing a simple breadth first search
+with the backbone nodes and backbone adjacency list. If stopped during the
+breadth first search with nodes still remaining, continue the breadth first
+search with a node as yet unvisited until all nodes are reached. The nodes
+visited during the breadth first search where the largest number of edges were
+reached form the backbone. For clarity, the algorithm is summarized step by
+step:
+
+1. For bipartite graph $B_{c,k}$ with independent sets $c$ and $k$
+3. While nodes unvisited in $B_{c,k}$
+    1. $v_i \leftarrow {{\rm pop}}$from _remaining_nodes_, $\epsilon \leftarrow
+       0$
+    2. ${\bf b}_{c,k} \leftarrow \{\}$
+    3. Add $v_i$ to queue
+    4. While $v_j \leftarrow {{\rm pop}}$ from queue
+        1. if $v_j$ already visited, continue.
+        2. $\epsilon \leftarrow \epsilon + |N(v_j)|$
+        3. Push $N(v_J)$ into queue.
+        4. ${\bf b}_{c,k}[] \leftarrow v_j$
+        5. Mark $v_j$ as visitied.
+4. Select ${\bf b}_{c,k}$ with largest $\epsilon$ is the largest connected
+   subgraph.
+
+In these steps, a few tedium are overlook, for example $\epsilon$, the number of
+edges in the current component, and ${\bf b}_{c,k}$ the current bipartite nodes
+within the current component are represented as single entities, but, since we
+want to select only that component which had the most edges, we must obviously
+store the all (or at least the max) component every time a new component is
+searched.
+
+This algorithm is linear in the number of edges and vertices of the bipartite
+backbones. Statistically speaking, in a true RGG there is very little chance
+that all combinations of bipartite backbones contain all vertices of the
+original graph $G$. Be that as it may, this algorithm can be very expensive if
+done poorly. As will be discussed in Section $\ref{algorithm-engineering}$,
+there are a number of implementation choices that affect the complexity of this
+algorithm.
+
 ## Algorithm Engineering
+
+These algorithms presented in the previous section are linear in the number of
+vertices and edges. However, that does not guarantee that the implementation of
+those algorithms are. To begin the implementation of the smallest last ordering
+is discussed.
+
+For the smallest last ordering to be truly linear in the number of vertices and
+edges of a graph $G$, the complexity of finding the next vertex with the
+smallest degree must be near constant time. To achieve this complexity, an index
+can be maintained of degrees to double linked list of points with that degree.
+Further, given any vertex, its position in its degree list must be reachable in
+constant time. To accomplish that, a vertex can be either given a pointer to its
+position or another index identifying vertices to placement in degree list can
+be created. Regardless, with these data structures, the lowest degree list with
+any vertices is used to "pop" the next node (i.e $v_j$) off of $G$. With each
+cutting, the neighbors of $v_j$ are then moved one degree list down (which is a
+linear operation in the number of edges of $v_j$ since we have the reference to
+each vertex's placement). In the implementation for this report, each vertex's
+"current degree" is maintained to quickly discover to which degree list it will
+be moved. Other implementations are possible, but this report's implementation
+is clearly linear, as is justified by Figure $\ref{fig:linear_runtimes}$.
+
+Secondly, the greedy coloring algorithm is very simple. To achieve linear time,
+the complexity of determining the minimum color must be kept linear to the
+number of edges adjacent to $v_i$. This is easily accomplished in one of two
+ways. Firstly, since the maximum degree is known, the maximum color cannot be
+greater than that. A counting sort of the neighborhood colors can thus be used
+from the base color allowed to the maximum degree. Then a linear pass through
+the counted set till the first 0 color is reached. This implementation is
+certainly viable, but has the unnecessary space that plagues counting sorts.
+With the benchmarks given in this report, such a problem would not pose any
+significant resource issues. However, another approach, and the approach use in
+this report's implementation, is to produce a set of colors from the
+neighborhood colors. A set (in `C++`) is typically implemented as a Red-Black
+tree. Thus the size of the Red-Black tree becomes ${{\cal O}}(|E_{v_i}|)$
+because, at _most_ a node will be part of a complete graph or clique in which
+all edges have different colors. The insert and search time of a Red-Black tree
+is ${\bf \Theta}(n)$ however, $n$ in this case is the number of unique colors in
+the neighbors of $v_i$. Starting at the lowest color to the *i* th color, $c_i$,
+the color set is searched for $c_i$ until it is not found within the set. $c_i$
+is then assigned to $v_i$. While the set is not constant time lookup or
+insertion, we have a good estimate with which to bound the complexity. The
+average number of colors is related to the average degree of $G$. We can say
+that the algorithm is ${\bf \Theta}(|V| + |E| \times \bar{d(G)})$ where
+$\bar{d(G)}$ is the average degree. This produces a linear time algorithm in
+the number of edges and vertices as that dominates the complexity. In reality,
+the average degree is a conservative estimate, as most vertices' neighborhoods
+have far fewer colors than the average degree.
 
 ## Walkthrough and Verification
 
+The algorithms were discussed in depth elsewhere in this report, so this section
+will focus mostly on visually showing the steps of the algorithm. Figures
+$\ref{fig:walkth_rgg}$ and $\ref{fig:walkth_bb}$ show the sample RGG and final
+Primary Backbone that covers (in this case) 100% of the nodes.
+
+```{r walkth_rgg, echo=FALSE, results="asis", fig.cap="\\label{fig:walkth_rgg}Walkthrough example of RGG"}
+plot_rgg("plane", 20, 10, "walkthru")
+```
+
+```{r walkth_bb, echo=FALSE, results="asis",fig.cap="\\label{fig:walkth_bb}Primary Backbone of RGG"}
+plot_primary_backone("plane", 20, 10, "walkthru")
+```
+
+Beginning with our RGG (uncolored), we have what is displayed in Figure
+$\ref{fig:init_col}$ . We first want to create our coloring using smallest last
+order. That algorithm cuts off the node with the minimum degree every iteration.
+The highlighted node is the first node to cut out (as seen in Figure
+$\ref{fig:first_cut}$).
+
+```{r include=FALSE}
+read_graph <- function(shape, nodes, average, dir="..") {
+  rgg_graph_file <- paste(shape, nodes, average, "graph.csv", sep="_")
+  rgg_graph_file <- paste(dir, rgg_graph_file, sep="/")
+
+  adj_file <- paste(shape, nodes, average, "adj.csv", sep="_")
+  adj_file <- paste(dir, adj_file, sep="/")
+
+  rgg <- read.csv(rgg_graph_file)
+  rgg <- rgg[order(rgg$id),]
+  adj <- read.csv(adj_file)
+  return(list(rgg=rgg, adj=adj))
+}
+
+plot_graph <- function (rgg, adj) {
+  lim <- c(0,1)
+  plot(rgg[,c("x","y")],
+
+       col = ifelse(!is.na(rgg$degree) & rgg$degree == min(rgg$degree), "red", "black"),
+       pch = ifelse(!is.na(rgg$degree) & rgg$degree == min(rgg$degree), 16, 1),
+       ylim = lim,
+       xlim = lim)
+  arrows(x0 = as.double(as.matrix(rgg[adj$p_id+1, "x"])), y0 = as.double(as.matrix(rgg[adj$p_id+1, "y"])),
+         x1 = as.double(as.matrix(rgg[adj$c_id+1, "x"])), y1 = as.double(as.matrix(rgg[adj$c_id+1, "y"])),
+         length = 0)
+}
+
+cut_min <- function(rgg, adj) {
+  row_cut <- which(rgg$degree == min(rgg$degree))
+  if (length(row_cut) > 1) {
+    row_cut <- row_cut[1]
+  }
+  node <- rgg[row_cut,]
+  rgg <- rgg[-row_cut,]
+
+  p_cut <- which(adj$p_id == node$id)
+  c_cut <- which(adj$c_id == node$id)
+  adj <- adj[-p_cut | c_cut,]
+
+  return(list(rgg=rgg, adj=adj))
+}
+
+res <- read_graph("plane", 20, 10, "walkthru")
+rgg <- res$rgg
+adj <- res$adj
+```
+
+```{r init_col, echo=FALSE, results="asis", fig.cap="\\label{fig:init_col}Initial RGG state prior to running SL Ordering"}
+plot_graph(rgg, adj)
+res <- cut_min(rgg, adj)
+rgg <- res$rgg
+adj <- res$adj
+```
+
+```{r first_cut, echo=FALSE, results="asis", fig.cap="\\label{fig:first_cut}First Cut in SL Ordering"}
+plot_graph(rgg,adj)
+for (i in 1:9) {
+    res <- cut_min(rgg, adj)
+    rgg <- res$rgg
+    adj <- res$adj
+}
+```
+
+This process continues as we remove the minimum degree vertex every time. Figure
+$\ref{fig:many_cuts}$ shows the process as it hits the terminal clique. This
+process continues till there are no more nodes left to cut. Then the we reverse
+the order in which we took them out to get the smallest last ordering. Figure
+$\ref{fig:dg_dist}$ shows the degree of the nodes when deleted as a function of
+iterations (additionally the original degree of the node is plotted).
+
+```{r many_cuts, echo=FALSE, results="asis", fig.cap="\\label{fig:many_cuts}Many Cuts down to near terminal clique"}
+plot_graph(rgg,adj)
+```
+
+```{r dg_dist, echo=FALSE, results="asis", fig.cap="\\label{fig:dg_dist}Degree when deleted from Graph, in Smallest Last Order from right to left"}
+plot_degree_dist("plane", 20, 10, "walkthru")
+```
+
+The graph coloring is very simple, as mentioned before. Graphically, it's the
+reverse of the smallest last ordering (in terms of the degree in question each
+iteration). Additionally, each node picks its color such that it is the lowest
+possible color "class" that is not one of its neighbors' colors.
+
+Lastly, the bipartite backbone selection is done by selecting those colors
+classes with the 4 largest frequency (See Figure $\ref{fig:walkth_rgg}$). In
+this case they are: Black (1), Red (2), Green (3), and Blue (4). All 6
+combination of colors (1,2) (1,3) (1,4) (2,3) (2,4) (3,4) are collected. An
+adjacency list is built of only bipartite nodes. Figure $\ref{fig:walkth_bb}$
+shows the subgraph of the bipartite combination (3,4). In this case, it also
+happened to be the best choice for backbone with the 100% vertex coverage.
+However, before we jump ahead to choosing the best backbone, we first have to
+pick the best **component** of each bipartite graph. A breadth first search is
+done on the bipartite subgraph to determine the largest connected component of
+the bipartite subgraph (yes a subgraph of the subgraph). In this instance, the
+(3,4) combination has only one, large component (the whole bipartite subgraph).
+Once the each combinations' largest component is found, the vertex coverage is
+determined for each backbone. This is simply the number of vertices incident to
+the backbone vertices (i.e. the number of nodes directly connected to the
+backbone, including the backbone itself) divided by the total number of
+vertices. Thus we have the ratio of coverage between 0 and 1. In this example,
+our coverage is 1!
+
 ## Algorithm Effectiveness
+
+In Table $\ref{tab:total_bench_res}$ the full results of the benchmarks are
+given. The overall consensus is positive for the RGG generation, coloring and
+bipartite backbone selection algorithms. For the RGG generation, the main
+criteria (in addition to optimized runtime) for evaluating the RGG generation
+was how close the actual average degree was to the desired average degree.
+Generally, the plane shaped benchmarks had actual average degrees nearer to the
+desired. The disk shaped benchmarks were close, but not as close as the plane
+shaped benchmarks. This likely has to do with the amount of precision given to
+$\pi$ within the `cmath` header `M_PI` (as it does not have the highest
+precision at 16 digits). Since the determination of the radius of adjacency $R$
+was in relation to $\pi$ for disk shaped areas, it is likely the loss of
+precision affected the ability to choose a better $R$. For the coloring
+algorithm, the largest independent sets were almost always the lowest color
+classes. Further, the degree when deleted versus original degree plots confirm
+that the smallest last ordering is correct. Lastly, the bipartite selection
+algorithm performs perfectly to expectation. The smallest vertex coverage is
+$99.5\%$.
+
+```{r total_bench_res, echo=FALSE, results='asis'}
+  kable(stats_mat, caption="Results", format = "latex", align="c")
+```
+
+Overall, the only stipulation in the implementation is potentially the RGG
+generation for disk surfaces for which a refinement has been proposed.
 
 # Simulated Benchmark Results
 
-# Conclusion
-Duis nec purus sed neque porttitor tincidunt vitae quis augue. Donec porttitor
-aliquam ante, nec convallis nisl ornare eu. Morbi ut purus et justo commodo
-dignissim et nec nisl. Donec imperdiet tellus dolor, vel dignissim risus
-venenatis eu. Aliquam tempor imperdiet massa, nec fermentum tellus sollicitudin
-vulputate. Integer posuere porttitor pharetra. Praesent vehicula elementum diam
-a suscipit. Morbi viverra velit eget placerat pellentesque. Nunc congue augue
-non nisi ultrices tempor.
+## Benchmark 1
+```{r, include=FALSE}
+shape <- "plane"
+nodes <- 1000
+avg_d <- 32
+```
+
+```{r bench1_rgg, echo=FALSE, results='asis'}
+plot_rgg(shape, nodes, avg_d)
+```
+
+```{r bench1_dg_dist, echo=FALSE, results='asis'}
+plot_degree_dist(shape, nodes, avg_d)
+```
+
+```{r bench1_pri_bb, echo=FALSE, results='asis'}
+plot_primary_backone(shape, nodes, avg_d)
+```
+
+## Benchmark 2
+
+```{r, include=FALSE}
+shape <- "plane"
+nodes <- 4000
+avg_d <- 64
+```
+
+```{r bench2_rgg, echo=FALSE, results='asis'}
+plot_rgg(shape, nodes, avg_d)
+```
+
+```{r bench2_dg_dist, echo=FALSE, results='asis'}
+plot_degree_dist(shape, nodes, avg_d)
+```
+
+```{r bench2_pri_bb, echo=FALSE, results='asis'}
+plot_primary_backone(shape, nodes, avg_d)
+```
+
+## Benchmark 3
+```{r, include=FALSE}
+shape <- "plane"
+nodes <- 16000
+avg_d <- 64
+```
+
+```{r bench3_rgg, echo=FALSE, results='asis'}
+plot_rgg(shape, nodes, avg_d)
+```
+
+```{r bench3_dg_dist, echo=FALSE, results='asis'}
+plot_degree_dist(shape, nodes, avg_d)
+```
+
+```{r bench3_pri_bb, echo=FALSE, results='asis'}
+plot_primary_backone(shape, nodes, avg_d)
+```
+
+## Benchmark 4
+```{r, include=FALSE}
+shape <- "plane"
+nodes <- 64000
+avg_d <- 64
+```
+
+```{r bench4_rgg, echo=FALSE, results='asis'}
+plot_rgg(shape, nodes, avg_d)
+```
+
+```{r bench4_dg_dist, echo=FALSE, results='asis'}
+plot_degree_dist(shape, nodes, avg_d)
+```
+
+```{r bench4_pri_bb, echo=FALSE, results='asis'}
+plot_primary_backone(shape, nodes, avg_d)
+```
+
+## Benchmark 5
+
+```{r, include=FALSE}
+shape <- "plane"
+nodes <- 64000
+avg_d <- 128
+```
+
+```{r bench5_rgg, echo=FALSE, results='asis'}
+plot_rgg(shape, nodes, avg_d)
+```
+
+```{r bench5_dg_dist, echo=FALSE, results='asis'}
+plot_degree_dist(shape, nodes, avg_d)
+```
+
+```{r bench5_pri_bb, echo=FALSE, results='asis'}
+plot_primary_backone(shape, nodes, avg_d)
+```
+
+## Benchmark 6
+
+```{r, include=FALSE}
+shape <- "disk"
+nodes <- 4000
+avg_d <- 64
+```
+
+```{r bench6_rgg, echo=FALSE, results='asis'}
+plot_rgg(shape, nodes, avg_d)
+```
+
+```{r bench6_dg_dist, echo=FALSE, results='asis'}
+plot_degree_dist(shape, nodes, avg_d)
+```
+
+```{r bench6_pri_bb, echo=FALSE, results='asis'}
+plot_primary_backone(shape, nodes, avg_d)
+```
+
+## Benchmark 7
+
+```{r, include=FALSE}
+shape <- "disk"
+nodes <- 4000
+avg_d <- 128
+```
+
+```{r bench7_rgg, echo=FALSE, results='asis'}
+plot_rgg(shape, nodes, avg_d)
+```
+
+```{r bench7_dg_dist, echo=FALSE, results='asis'}
+plot_degree_dist(shape, nodes, avg_d)
+```
+
+```{r bench7_pri_bb, echo=FALSE, results='asis'}
+plot_primary_backone(shape, nodes, avg_d)
+```
 
 # References {#references}
 
